@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { GRID_ROWS, GRID_COLS } from "../../data/placeholder";
 import { Grid } from "./Grid";
-import styles from './GridPanel.module.css'
+import styles from './Gridpanel.module.css'
 import { Legend } from './Legend'
 
 const sizeVars = {'--cols': GRID_COLS, '--rows': GRID_ROWS} as CSSProperties;
