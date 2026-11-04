@@ -1,0 +1,112 @@
+/*
+ * Design tokens: the single source of truth for PathFinder's look.
+ * Values come from the design canvas (Main screen + Style tile).
+ * Components reference these variables and never hard-code a colour.
+ */
+
+:root {
+  /* ── Typography ─────────────────────────────────────────── */
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif; /* headings, stat numbers */
+  --font-ui: 'Instrument Sans', system-ui, sans-serif;          /* labels, buttons, body */
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;       /* seeds, coordinates */
+
+  /* ── Surfaces ───────────────────────────────────────────── */
+  --color-ground: #F3EDE1;      /* page background */
+  --color-panel: #FBF8F2;       /* Controls panel */
+  --color-panel-inset: #F7F2E9; /* Terrain section background */
+  --color-grid-well: #EDE4D3;   /* grid frame, tags, ghost button */
+  --color-field: #FFFDF8;       /* inputs, steppers, selected segment */
+  --color-track: #F1EADD;       /* segmented-control track */
+
+  /* ── Lines ──────────────────────────────────────────────── */
+  --color-line: #E0D5C2;         /* input borders, legend divider */
+  --color-border-panel: #E3D9C7; /* Controls panel outline */
+  --color-border-frame: #E2D7C3; /* grid frame outline */
+  --color-divider: #ECE4D5;      /* between Controls sections */
+  --color-border-faint: rgb(58 51 46 / 0.06); /* stat cards */
+
+  /* ── Ink (text and icons) ───────────────────────────────── */
+  --color-ink: #3A332E;
+  --color-ink-soft: #4A423C;    /* legend labels, stat notes */
+  --color-ink-subtle: #5E554D;  /* inactive segments, tags */
+  --color-ink-muted: #6B6158;   /* field labels, hints */
+  --color-ink-inverse: #FBF8F2; /* text on dark surfaces */
+
+  /* ── Hover states ───────────────────────────────────────── */
+  --color-hover-field: #F3ECDF;
+  --color-hover-segment: #E8DFCF;
+  --color-hover-ghost: #E5DAC6;
+  --color-hover-primary: #2B2521;
+
+  /* ── Grid cells ─────────────────────────────────────────── */
+  --color-cell-empty: #FFFCF5;
+  --color-cell-start: #6FA07D;
+  --color-cell-end: #CF6F69;
+  --color-cell-wall: #4E4640;
+  --color-cell-visited: #C9D8EC;
+  --color-cell-frontier: #B9A6DA;
+  --color-cell-current: #E58FAE;
+  --color-cell-path: #EDA35F;
+
+  /* ── Stat cards ─────────────────────────────────────────── */
+  --color-stat-visited: var(--color-cell-visited);
+  --color-stat-path: #F3C99B;
+  --color-stat-frontier: #D9CCEC;
+  --color-stat-coverage: #EBB4AF;
+
+  /* ── Controls: selected states ──────────────────────────── */
+  --color-segment-ring: #E3D8C5;
+  --color-accent-soft: #E6DCF2; /* selected algorithm */
+  --color-accent-ring: #D3C4EA;
+  --color-switch-off: #DCD1BE;
+  --color-switch-on: var(--color-cell-frontier);
+  --color-erase-ring: #CFC3AE;  /* outline on the white "Erase" key */
+  --color-play: var(--color-cell-wall);
+
+  /* ── Section heading dots ───────────────────────────────── */
+  --color-dot-map: var(--color-cell-start);
+  --color-dot-terrain: #A9B98F;
+  --color-dot-algorithm: var(--color-cell-frontier);
+  --color-dot-playback: var(--color-cell-end);
+
+  /* ── Message boxes (Playback) ───────────────────────────── */
+  --color-msg-step-bg: #F6DDE6;
+  --color-msg-step-border: #ECC6D3;
+  --color-msg-info-bg: var(--color-track);       /* searching */
+  --color-msg-info-border: var(--color-border-panel);
+  --color-msg-success-bg: #DCEBDD;               /* path found */
+  --color-msg-success-border: #BCD6BF;
+  --color-msg-error-bg: #F5D9D6;                 /* no path */
+  --color-msg-error-border: #E9BCB7;
+
+  /* ── Algorithm description card ─────────────────────────── */
+  --color-card-dark: #6F655D;
+  --color-card-dark-soft: #F1EADD; /* secondary text on the card */
+
+  /* ── Terrain (placeholder, disabled for now) ────────────── */
+  --color-terrain-grass: #B7CF9A;
+  --color-terrain-mud: #C9A47E;
+  --color-terrain-stone: #AFA9A2;
+  --color-terrain-pavement: #8F8A85;
+
+  /* ── Radii ──────────────────────────────────────────────── */
+  --radius-cell: 3px;
+  --radius-cell-tight: 2px; /* large grids */
+  --radius-key: 3px;        /* legend and segment colour keys */
+  --radius-segment: 9px;
+  --radius-control: 12px;   /* inputs, buttons, message boxes */
+  --radius-stat: 16px;
+  --radius-card: 18px;
+  --radius-frame: 20px;
+  --radius-panel: 22px;
+  --radius-pill: 999px;
+
+  /* ── Sizes ──────────────────────────────────────────────── */
+  --size-control: 44px; /* height of inputs, buttons, steppers */
+  --size-play: 58px;
+
+  /* ── Shadows ────────────────────────────────────────────── */
+  --shadow-panel: 0 1px 0 rgb(58 51 46 / 0.04), 0 18px 40px -26px rgb(58 51 46 / 0.35);
+  --shadow-segment-on: 0 1px 2px rgb(58 51 46 / 0.12), 0 0 0 1px var(--color-segment-ring);
+  --shadow-play: 0 8px 18px -10px rgb(58 51 46 / 0.7);
+}

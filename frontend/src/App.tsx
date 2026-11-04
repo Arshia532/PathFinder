@@ -1,3 +1,3 @@
 export function App() {
-  return <h1>pathFinder Visualizer</h1>
+  return <h1>PathFinder Visualizer</h1>
 }
