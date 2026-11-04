@@ -1,0 +1,11 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  gap: 2px;
+}
+
+.cell {
+  aspect-ratio: 1;
+  background: var(--color-cell-empty);
+  border-radius: var(--radius-cell);
+}

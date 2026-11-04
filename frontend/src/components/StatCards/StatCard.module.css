@@ -1,0 +1,32 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  min-height: 132px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border-faint);
+  border-radius: var(--radius-stat);
+}
+
+.label {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.value {
+  margin: auto 0 4px;
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.note {
+  font-size: 12px;
+  color: var(--color-ink-soft);
+}
+
+.visited  { background: var(--color-stat-visited); }
+.path     { background: var(--color-stat-path); }
+.frontier { background: var(--color-stat-frontier); }
+.coverage { background: var(--color-stat-coverage); }

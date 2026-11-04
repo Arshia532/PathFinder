@@ -1,0 +1,31 @@
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--color-ink-soft);
+}
+
+.key {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border-radius: var(--radius-key);
+}
+
+.start    { background: var(--color-cell-start); }
+.end      { background: var(--color-cell-end); }
+.wall     { background: var(--color-cell-wall); }
+.visited  { background: var(--color-cell-visited); }
+.frontier { background: var(--color-cell-frontier); }
+.current  { background: var(--color-cell-current); }
+.path     { background: var(--color-cell-path); }

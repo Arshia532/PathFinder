@@ -1,0 +1,9 @@
+.logo {
+  display: block;
+  flex: none;
+}
+
+.tileStart   { fill: var(--color-cell-start); }
+.tileCurrent { fill: var(--color-cell-current); }
+.tileEnd     { fill: var(--color-cell-end); }
+.tilePath    { fill: var(--color-cell-path); }
