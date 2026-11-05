@@ -19,7 +19,8 @@ map rules. The model must work independently of Spring Boot and React.
 - Map coordinates to indices using `rowIndex * columnCount + columnIndex`.
   Coordinates start at zero; `columnCount` is the total number of columns.
 - Allow movement up, right, down, and left, in that order. Exclude walls.
-- Require positive integer terrain costs. Default terrain costs `1`.
+- Require integer terrain costs from `1` to the configured maximum, capped at
+  `100`. Default terrain costs `1`; the default configured maximum is `100`.
 - Charge the cost of entering a cell. The starting cell adds no cost.
 - Make each grid an immutable snapshot. Copy constructor inputs and expose no arrays.
 - Keep endpoints, visited flags, parents, distances, and playback outside the grid.
@@ -79,4 +80,6 @@ coverage and strict JavaDocs. Tests cover rectangular coordinates, all boundarie
 one-row/one-column maps, walls, weighted
 terrain, independent input copies, and invalid input including dimension overflow.
 
-Grid and position checks are separate JUnit test files. Nine tests pass on JDK 26.
+Grid and position checks are separate JUnit test files and pass on JDK 26.
+See [0003](0003-terrain-limits-and-grid-equality.md) for terrain-limit validation
+and grid equality semantics.

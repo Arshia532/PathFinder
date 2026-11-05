@@ -14,18 +14,26 @@ import java.util.Objects;
  *
  * <p>This class stores map data only. Endpoints, search state, and playback
  * belong to the caller. Instances can be shared between independent searches.
+ * Terrain costs must be between {@code 1} and the configured maximum, which
+ * cannot exceed {@link #MAX_TERRAIN_COST}. Equality compares dimensions, the
+ * configured maximum, walls, and terrain costs by value.
  */
 public final class Grid {
     /** The maximum number of neighbors under four-direction movement. */
     public static final int MAX_NEIGHBORS = 4;
 
+    /** The hard upper bound for any configured limit or individual terrain cost. */
+    public static final int MAX_TERRAIN_COST = 100;
+
     private final int rowCount;
     private final int columnCount;
+    private final int maxTerrainCost;
     private final boolean[] blocked;
     private final int[] terrainCosts;
 
     /**
-     * Creates an open grid where every cell has terrain cost {@code 1}.
+     * Creates an open grid with terrain cost {@code 1} and a maximum of
+     * {@link #MAX_TERRAIN_COST}.
      *
      * @param rowCount the positive total number of rows
      * @param columnCount the positive total number of columns
@@ -33,29 +41,63 @@ public final class Grid {
      *         number of cells exceeds {@link Integer#MAX_VALUE}
      */
     public Grid(int rowCount, int columnCount) {
+        this(rowCount, columnCount, MAX_TERRAIN_COST);
+    }
+
+    /**
+     * Creates an open grid with terrain cost {@code 1} and a configured maximum.
+     *
+     * @param rowCount the positive total number of rows
+     * @param columnCount the positive total number of columns
+     * @param maxTerrainCost the inclusive terrain-cost limit, from 1 to 100
+     * @throws IllegalArgumentException if dimensions are invalid, the number of
+     *         cells exceeds {@link Integer#MAX_VALUE}, or the limit is outside 1-100
+     */
+    public Grid(int rowCount, int columnCount, int maxTerrainCost) {
         int cellCount = checkedCellCount(rowCount, columnCount);
+        checkTerrainLimit(maxTerrainCost);
         this.rowCount = rowCount;
         this.columnCount = columnCount;
+        this.maxTerrainCost = maxTerrainCost;
         this.blocked = new boolean[cellCount];
         this.terrainCosts = new int[cellCount];
         Arrays.fill(terrainCosts, 1);
     }
 
     /**
-     * Creates a map from row-major arrays, copying them to prevent later changes.
-     * Every cell needs a positive terrain cost, including walls, so removing a
-     * wall in a future map can preserve its underlying terrain.
+     * Creates a map from row-major arrays with a maximum terrain cost of
+     * {@link #MAX_TERRAIN_COST}. The arrays are copied to prevent later changes.
      *
      * @param rowCount the positive total number of rows
      * @param columnCount the positive total number of columns
      * @param blocked whether each cell is impassable
-     * @param terrainCosts the positive entry cost of each cell
+     * @param terrainCosts each cell's entry cost, from 1 to 100
      * @throws NullPointerException if either array is null
      * @throws IllegalArgumentException if dimensions are invalid, either array
-     *         has the wrong length, or any terrain cost is nonpositive
+     *         has the wrong length, or any terrain cost is outside 1-100
      */
     public Grid(int rowCount, int columnCount, boolean[] blocked, int[] terrainCosts) {
+        this(rowCount, columnCount, blocked, terrainCosts, MAX_TERRAIN_COST);
+    }
+
+    /**
+     * Creates a map with a configured terrain-cost limit, copying the row-major
+     * arrays. Costs on walls must also satisfy the limit, so a future map can
+     * preserve valid underlying terrain when removing a wall.
+     *
+     * @param rowCount the positive total number of rows
+     * @param columnCount the positive total number of columns
+     * @param blocked whether each cell is impassable
+     * @param terrainCosts each cell's entry cost, from 1 to maxTerrainCost
+     * @param maxTerrainCost the inclusive terrain-cost limit, from 1 to 100
+     * @throws NullPointerException if either array is null
+     * @throws IllegalArgumentException if dimensions or the limit are invalid,
+     *         either array has the wrong length, or any cost is outside the limit
+     */
+    public Grid(int rowCount, int columnCount, boolean[] blocked, int[] terrainCosts,
+                int maxTerrainCost) {
         int cellCount = checkedCellCount(rowCount, columnCount);
+        checkTerrainLimit(maxTerrainCost);
         Objects.requireNonNull(blocked, "blocked");
         Objects.requireNonNull(terrainCosts, "terrainCosts");
         if (blocked.length != cellCount || terrainCosts.length != cellCount) {
@@ -64,11 +106,13 @@ public final class Grid {
 
         this.rowCount = rowCount;
         this.columnCount = columnCount;
+        this.maxTerrainCost = maxTerrainCost;
         this.blocked = blocked.clone();
         this.terrainCosts = terrainCosts.clone();
         for (int cost : this.terrainCosts) {
-            if (cost <= 0) {
-                throw new IllegalArgumentException("Terrain costs must be positive.");
+            if (cost < 1 || cost > maxTerrainCost) {
+                throw new IllegalArgumentException(
+                        "Terrain costs must be between 1 and " + maxTerrainCost + ".");
             }
         }
     }
@@ -87,6 +131,14 @@ public final class Grid {
      */
     public int columns() {
         return columnCount;
+    }
+
+    /**
+     * Returns the configured inclusive limit, not the largest cost present in the map.
+     * @return the terrain-cost limit, from 1 to 100
+     */
+    public int maxTerrainCost() {
+        return maxTerrainCost;
     }
 
     /**
@@ -197,6 +249,50 @@ public final class Grid {
             destination[count++] = index - 1;
         }
         return count;
+    }
+
+    /**
+     * Compares grid values, including dimensions, the configured terrain limit,
+     * walls, and all terrain costs. Distinct arrays with identical contents match.
+     *
+     * @param other the object to compare
+     * @return whether both objects represent the same grid value
+     */
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof Grid grid)) {
+            return false;
+        }
+        return rowCount == grid.rowCount
+                && columnCount == grid.columnCount
+                && maxTerrainCost == grid.maxTerrainCost
+                && Arrays.equals(blocked, grid.blocked)
+                && Arrays.equals(terrainCosts, grid.terrainCosts);
+    }
+
+    /**
+     * Returns a hash consistent with {@link #equals(Object)}. Computing it scans
+     * the cell arrays; it is not a unique identifier for a grid.
+     *
+     * @return the hash of the grid's dimensions, terrain limit, walls, and costs
+     */
+    @Override
+    public int hashCode() {
+        int result = rowCount;
+        result = 31 * result + columnCount;
+        result = 31 * result + maxTerrainCost;
+        result = 31 * result + Arrays.hashCode(blocked);
+        return 31 * result + Arrays.hashCode(terrainCosts);
+    }
+
+    private static void checkTerrainLimit(int maxTerrainCost) {
+        if (maxTerrainCost < 1 || maxTerrainCost > MAX_TERRAIN_COST) {
+            throw new IllegalArgumentException(
+                    "Maximum terrain cost must be between 1 and " + MAX_TERRAIN_COST + ".");
+        }
     }
 
     private static int checkedCellCount(int rowCount, int columnCount) {

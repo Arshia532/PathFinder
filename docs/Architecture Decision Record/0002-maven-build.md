@@ -51,6 +51,6 @@ dependency choices as those features are implemented.
 ## Verification
 
 The generated wrapper selected Maven 3.9.9 and Eclipse Temurin 26.0.2.1.
-`clean verify` compiled both production and test code for Java 26, passed nine
-JUnit tests, packaged the domain JAR, and generated coverage and strict JavaDocs.
+`clean verify` compiled both production and test code for Java 26, passed the
+JUnit suite, packaged the domain JAR, and generated coverage and strict JavaDocs.
 See the backend README for repeatable commands and report locations.

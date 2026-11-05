@@ -15,7 +15,9 @@ algorithms have not been added yet.
 
 The grid uses four-direction movement, zero-based coordinates, positive integer
 terrain costs paid on entry, and no initial cost for the starting cell.
-New open grids have terrain cost `1` everywhere.
+New open grids have terrain cost `1` everywhere. A grid accepts a configured
+maximum terrain cost from `1` to `100`, inclusive; the default maximum is `100`.
+Every cell's cost, including terrain under walls, must be within that limit.
 Walls and terrain are independent. Search state and endpoints belong outside
 the map.
 
@@ -55,21 +57,26 @@ excluded, and a wall used as the source returns no neighbors.
 | `positionAt(index)` | Convert a valid index to a new position. |
 | `isBlocked(index)` | Check whether the cell is a wall. |
 | `terrainCost(index)` | Read its positive terrain cost, including terrain under walls. |
+| `maxTerrainCost()` | Read the configured upper bound, not the largest cost present. |
 | `neighbors(index, buffer)` | Write open neighbors and return how many were written. |
+| `equals(other)`, `hashCode()` | Compare and hash grid values consistently. |
 
 Construction copies the supplied arrays, so changing the original inputs cannot
 change an existing grid. There are no editing setters or exposed internal arrays.
 Map edits produce a new snapshot. Start/destination selection, visited flags,
 distances, and paths belong to the search layer rather than the map.
 
-Creating a grid takes O(rowCount * columnCount) time and memory. Cell lookups and neighbor
-discovery take O(1) time. Neighbor discovery reuses the caller's buffer and creates
-no objects. Dimension validation prevents integer overflow, but an application
-cell limit still needs to be agreed upon to keep memory and playback practical.
+Creating a grid takes O(rowCount * columnCount) time and memory. Cell lookups and
+neighbor discovery take O(1) time. Neighbor discovery reuses the caller's buffer
+and creates no objects. Comparing distinct grids and computing a hash take
+O(cellCount) time in the worst case because they examine the cell arrays.
+Dimension validation prevents integer overflow, but an application cell limit
+still needs to be agreed upon to keep memory and playback practical.
 
-Nonpositive dimensions, wrong array lengths, nonpositive terrain costs, and short
-neighbor buffers cause `IllegalArgumentException`. Null required inputs cause
-`NullPointerException`; out-of-bounds positions or indices cause
+Nonpositive dimensions, wrong array lengths, invalid terrain limits or cell
+costs, and short neighbor buffers cause `IllegalArgumentException`. Limits
+outside `1-100` are rejected rather than silently clamped. Null required inputs
+cause `NullPointerException`; out-of-bounds positions or indices cause
 `IndexOutOfBoundsException`. Full contracts are documented in the JavaDocs.
 
 ## Example
@@ -97,8 +104,42 @@ before assigning any difficult terrain. Pass them to
 and are copied by the constructor. Later changes to those inputs do not change
 the grid.
 
+To select a lower terrain limit, pass it as the final constructor argument:
+
+```java
+Grid open = new Grid(3, 4, 20);
+Grid weighted = new Grid(1, 3,
+        new boolean[] {false, true, false}, new int[] {1, 5, 20}, 20);
+```
+
+Both grids have a configured maximum of `20`; the open grid still starts with
+cost `1` everywhere. A cell cost of `21` is invalid on these grids. A configured
+maximum of `101` is always invalid. The original constructors remain available
+and use the default maximum of `100`.
+
 Read only the first `count` entries in the neighbor buffer. Reuse the buffer
 within one search; give separate searches their own buffers.
+
+## Grid equality
+
+Two grids are equal when their row and column counts, configured terrain limit,
+wall positions, and all terrain costs match. Array contents are compared, so
+separately constructed snapshots can be equal. Terrain under walls is included.
+Different configured limits mean different grid values, even when current cell
+contents match.
+
+`hashCode()` uses those same values, allowing equal grids to work consistently
+in `HashSet` and as `HashMap` keys. Hashes can collide and must not be used as
+unique map identifiers. No application cache or deduplication feature is added
+by these methods.
+
+A custom `toString()` is not implemented. It could provide a small debugging
+summary later; printing a full grid or serializing it for the frontend should
+use a deliberately designed representation.
+
+Terrain costs above `100` that earlier versions accepted now cause an exception.
+Existing constructor signatures remain available, but callers must supply costs
+within the new range. Grid comparisons now use values rather than object identity.
 
 ## Verify locally
 
@@ -130,7 +171,7 @@ as errors, runs JUnit tests, packages the domain code, generates coverage report
 and checks JavaDocs strictly. Generated files are ignored by Git.
 
 Test sources in `src/test/` are included with production code in version control.
-The suite stays in two files: seven grid tests and two position tests, covering
+The suite stays in two files: grid tests and position tests, covering
 the implemented contracts without a custom test framework. This project fails
 verification if no tests are discovered, so a missing suite cannot silently pass.
 Generated test results and coverage reports remain ignored.
@@ -211,10 +252,12 @@ OpenAI Codex assisted with the grid design discussion and generated the initial
 documentation. It also recorded confirmed behavior separately from proposals,
 generated the Apache Maven wrapper, configured the Maven build, and migrated the
 checks to JUnit in separate grid and position test files.
+Further assistance added configurable terrain limits, the hard cap of `100`,
+value equality, matching hashes, and focused contract tests.
 
 Verification performed by Codex: the initial dependency-free checks passed on
 JDK 25. The Maven build subsequently passed on Eclipse Temurin 26.0.2.1 with
-Maven 3.9.9: nine JUnit tests passed, coverage was generated, and strict JavaDoc
+Maven 3.9.9: the JUnit suite passed, coverage was generated, and strict JavaDoc
 checks passed. This does not establish algorithm correctness or web integration.
 Team review and each student's independent explanation remain to be completed.
 Extend this log as further assistance or verification occurs.
