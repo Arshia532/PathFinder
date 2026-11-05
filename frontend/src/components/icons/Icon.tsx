@@ -7,13 +7,15 @@ export type IconBaseProps = {
 };
 
 type IconProps = IconBaseProps & {
-  children: ReactNode;
-};
+  filled?: boolean
+  children: ReactNode
+}
 
 export function Icon({
   size = 16,
   strokeWidth = 2,
   className,
+  filled = false,
   children,
 }: IconProps) {
   return (
@@ -22,8 +24,8 @@ export function Icon({
       width={size}
       height={size}
       viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
+      fill={filled ? 'currentColor' : 'none'}
+      stroke={filled ? 'none' : 'currentColor'}
       strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"

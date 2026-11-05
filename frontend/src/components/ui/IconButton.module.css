@@ -1,0 +1,35 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.default {
+  width: var(--size-control);
+  height: var(--size-control);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-control);
+  background: var(--color-field);
+  color: var(--color-ink);
+}
+
+.default:hover {
+  background: var(--color-hover-field);
+}
+
+.primary {
+  width: var(--size-play);
+  height: var(--size-play);
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-play);
+  color: var(--color-ink-inverse);
+  box-shadow: var(--shadow-play);
+}
+
+.primary:hover {
+  background: var(--color-ink);
+}

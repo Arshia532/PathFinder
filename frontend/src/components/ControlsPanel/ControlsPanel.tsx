@@ -1,6 +1,8 @@
 import styles from './ControlsPanel.module.css'
 import { MapSection } from './MapSection/MapSection';
 import { TerrainSection } from './TerrainSection/TerrainSection';
+import { AlgorithmSection } from './AlgorithmSection/AlgorithmSection';
+import { PlaybackSection } from './PlaybackSection/PlaybackSection';
 
 export function ControlsPanel () {
     return (
@@ -11,9 +13,8 @@ export function ControlsPanel () {
             
             <MapSection />
             <TerrainSection />
-            <div className={styles.placeholder}>Algorithm</div>
-            <div className={styles.placeholder}>Playback</div>
+            <AlgorithmSection />
+            <PlaybackSection />
         </aside>
-
     );
 }

@@ -36,6 +36,12 @@
   box-shadow: var(--shadow-segment-on);
 }
 
+.segment.selectedAccent {
+  background: var(--color-accent-soft);
+  color: var(--color-ink);
+  box-shadow: 0 0 0 1px var(--color-accent-ring);
+}
+
 .segment:disabled {
   background: transparent;
   color: var(--color-ink-subtle);

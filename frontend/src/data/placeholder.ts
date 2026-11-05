@@ -13,3 +13,14 @@ export const placeholderStats = {
 export const placeholderSeed = '48213';
 
 export const placeholderTool = 'wall';
+
+export const placeholderAlgorithm = 'astar'
+
+export const placeholderBidirection = false;
+
+export const placeholderStep = { verb: 'Start at', x: 3, y: 15, current: '0', total: '0' }
+
+export const placeholderResult = {
+  tone: 'info',
+  text: 'Press play to run the search',
+} as const
