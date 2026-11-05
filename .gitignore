@@ -1,0 +1,5 @@
+/backend/build/
+/backend/target/
+
+# Local course requirements and assessment notes.
+/docs/Project-requirements.md
