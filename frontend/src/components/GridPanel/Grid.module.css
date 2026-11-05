@@ -1,7 +1,13 @@
 .grid {
+  --gap: 2px;
+
   display: grid;
   grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
-  gap: 2px;
+  gap: var(--gap);
+  width: 100%;
+  /* Stop cells growing past the max size; the grid then centres in its panel */
+  max-width: calc(var(--cols) * var(--size-cell-max) + (var(--cols) - 1) * var(--gap));
+  margin-inline: auto;
 }
 
 .cell {

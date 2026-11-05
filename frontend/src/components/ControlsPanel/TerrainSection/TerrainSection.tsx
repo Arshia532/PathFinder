@@ -37,7 +37,7 @@ export function TerrainSection() {
                 </summary>
                 <div className={styles.body}>
                     <fieldset className={styles.locked} disabled aria-describedby="terrain-note">
-                        <legend className="visually-hidden">Terrain settings, not avaiable yet</legend>
+                        <legend className="visually-hidden">Terrain settings, not available yet</legend>
                         <Field label="Type" labelId="terrain-type-label">
                             <SegmentedControl options={terrainOptions} labelId="terrain-type-label" />
                         </Field>
@@ -60,7 +60,7 @@ export function TerrainSection() {
                             </div>
                         </Field>
                     </fieldset>
-                    <p className={styles.note}>
+                    <p id="terrain-note" className={styles.note}>
                         Weighted cells: moving costs more on rough ground and slopes.
                     </p>
                 </div>

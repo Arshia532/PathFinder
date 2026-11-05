@@ -27,7 +27,7 @@ export function AlgorithmSection() {
                 tone="accent"
             />
 
-            <Switch id="bidirectional" label="Bi-directional" deafultChekced={placeholderBidirection}/>
+            <Switch id="bidirectional" label="Bi-directional" defaultChecked={placeholderBidirection}/>
         </section>
     )
 }

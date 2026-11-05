@@ -49,7 +49,7 @@ export function MapSection () {
             </div>
             <div>
                 <div className={styles.fields}>
-                    <Field label='columns' labelId='cols-label'>
+                    <Field label='Columns' labelId='cols-label'>
                         <Stepper 
                             value={GRID_COLS}
                             min={GRID_MIN_SIZE}
@@ -60,7 +60,7 @@ export function MapSection () {
                         />
                     </Field>
 
-                    <Field label='Rows' labelId='Rows-label'>
+                    <Field label='Rows' labelId='rows-label'>
                         <Stepper 
                             value={GRID_ROWS}
                             min={GRID_MIN_SIZE}
@@ -83,7 +83,7 @@ export function MapSection () {
                     <ShuffleIcon size={18} strokeWidth={1.8}/>
                     Generate Random
                 </Button>
-                <Button variant="ghost">
+                <Button variant="ghost" className={styles.fill}>
                     <RotateCcwIcon size={18} strokeWidth={1.8}/>
                     Reset map
                 </Button>

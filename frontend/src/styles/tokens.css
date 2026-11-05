@@ -104,9 +104,12 @@
   /* ── Sizes ──────────────────────────────────────────────── */
   --size-control: 44px; /* height of inputs, buttons, steppers */
   --size-play: 58px;
+  --size-cell-max: 26px; /* largest a grid cell grows on wide screens */
 
   /* ── Shadows ────────────────────────────────────────────── */
   --shadow-panel: 0 1px 0 rgb(58 51 46 / 0.04), 0 18px 40px -26px rgb(58 51 46 / 0.35);
   --shadow-segment-on: 0 1px 2px rgb(58 51 46 / 0.12), 0 0 0 1px var(--color-segment-ring);
   --shadow-play: 0 8px 18px -10px rgb(58 51 46 / 0.7);
+  --shadow-switch-thumb: 0 1px 2px rgb(58 51 46 / 0.2);
+  --shadow-slider-thumb: 0 1px 3px rgb(58 51 46 / 0.3);
 }

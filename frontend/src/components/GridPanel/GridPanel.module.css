@@ -1,7 +1,5 @@
 .panel {
   width: 100%;
-  max-width: calc(min(var(--cols) * 56px, var(--cols) * 700px / var(--rows)) + 30px);
-  align-self: center;
   display: flex;
   flex-direction: column;
   padding: 14px 14px 10px;

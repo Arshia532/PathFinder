@@ -3,7 +3,7 @@ import {Header} from './components/Header/Header';
 import {GridPanel} from './components/GridPanel/GridPanel'
 import { StatsCards } from './components/StatCards/StatsCards'
 import { ControlsPanel } from './components/ControlsPanel/ControlsPanel';
-import { AlgorithmCard } from './components/AlgorithmCard/AlgorithmsCard';
+import { AlgorithmCard } from './components/AlgorithmCard/AlgorithmCard';
 
 export function App() {
   return (

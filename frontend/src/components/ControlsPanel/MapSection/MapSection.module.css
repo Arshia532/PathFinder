@@ -53,9 +53,15 @@
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
+/* Generate takes the spare width; Reset only fills its row once it wraps */
 .grow {
+  flex: 100 1 auto;
+}
+
+.fill {
   flex: 1 1 auto;
 }

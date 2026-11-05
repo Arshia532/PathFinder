@@ -1,5 +1,5 @@
 export const GRID_COLS = 30;
-export const GRID_ROWS = 15;
+export const GRID_ROWS = 21;
 
 
 export const placeholderStats = {
