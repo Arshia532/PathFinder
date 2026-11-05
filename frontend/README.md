@@ -7,7 +7,7 @@ this app draws the grid and replays those steps.
 ## Tech stack
 
 - React 19 + TypeScript, built with Vite
-- Plain CSS with design tokens (CSS custom properties)
+- CSS Modules with design tokens (CSS custom properties)
 - ESLint for linting
 
 ## Prerequisites
@@ -35,6 +35,49 @@ Then open http://localhost:5173.
 | `npm run build`   | Type-check and build for production to `dist/` |
 | `npm run preview` | Serve the production build locally             |
 | `npm run lint`    | Run ESLint on the project                      |
+
+## Project structure
+
+```
+src/
+├── main.tsx              Entry point: global styles + <App />
+├── App.tsx               Page layout (two columns)
+├── styles/
+│   ├── tokens.css        Design tokens: colours, fonts, radii, shadows
+│   └── global.css        Reset and page-wide defaults
+├── data/
+│   ├── algorithms.ts     Algorithm names and descriptions
+│   ├── gridPresets.ts    Grid-size presets and limits
+│   └── placeholder.ts    Temporary static data (replaced by live state)
+└── components/
+    ├── Header/           Title and logo
+    ├── Logo/             2×2 brand mark
+    ├── GridPanel/        Grid, legend and frame
+    ├── StatCards/        Run statistics
+    ├── ControlsPanel/    Controls panel, one folder per section
+    │   ├── MapSection/
+    │   ├── TerrainSection/
+    │   ├── AlgorithmSection/
+    │   └── PlaybackSection/
+    ├── AlgorithmCard/    Description of the selected algorithm
+    ├── ui/               Reusable controls (Button, Stepper, SegmentedControl, …)
+    └── icons/            SVG icons built on a shared base component
+```
+
+## Styling
+
+- **Design tokens** in `src/styles/tokens.css` hold every colour, font, radius
+  and shadow. Components never hard-code a colour.
+- **CSS Modules** (`*.module.css`) scope class names to each component, so
+  styles can't leak or collide.
+- **Fonts:** Bricolage Grotesque (display), Instrument Sans (UI) and
+  JetBrains Mono (seeds and coordinates), loaded from Google Fonts.
+
+## Status
+
+- [x] Static layout matching the design, using placeholder data
+- [ ] State, event handlers and TypeScript domain types
+- [ ] Connect to the Spring Boot API and replay search steps
 
 ## Toolchain notes
 
