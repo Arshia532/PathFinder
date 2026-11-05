@@ -1,0 +1,7 @@
+.label {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-ink-muted);
+}

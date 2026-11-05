@@ -1,0 +1,33 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--size-control);
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.primary {
+  background: var(--color-ink);
+  color: var(--color-ink-inverse);
+}
+
+.primary:hover {
+  background: var(--color-hover-primary);
+}
+
+.ghost {
+  background: var(--color-grid-well);
+  border-color: var(--color-line);
+  color: var(--color-ink);
+}
+
+.ghost:hover {
+  background: var(--color-hover-ghost);
+}

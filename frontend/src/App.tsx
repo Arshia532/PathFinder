@@ -2,6 +2,7 @@ import styles from './App.module.css';
 import {Header} from './components/Header/Header';
 import {GridPanel} from './components/GridPanel/GridPanel'
 import { StatsCards } from './components/StatCards/StatsCards'
+import { ControlsPanel } from './components/ControlsPanel/ControlsPanel';
 
 export function App() {
   return (
@@ -14,7 +15,7 @@ export function App() {
         </main>
 
         <div className = {styles.sideColumn}>
-          <div className = {styles.placeholder}>Controls Panel</div>
+          <ControlsPanel />
           <div className = {styles.placeholder}>Algorithem Card</div>
         </div>
       </div>

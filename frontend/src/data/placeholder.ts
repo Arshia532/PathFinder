@@ -9,3 +9,7 @@ export const placeholderStats = {
     coverage: '0%',
     openCells: '630', 
 } 
+
+export const placeholderSeed = '48213';
+
+export const placeholderTool = 'wall';
