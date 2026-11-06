@@ -17,20 +17,20 @@ public final class RandomGridGenerator {
      * per cell, not an exact fraction of walls. A route is not guaranteed.
      * All cells, including walls, have terrain cost {@code 1}.
      *
-     * @param rows positive number of rows
-     * @param columns positive number of columns
+     * @param rowCount positive number of rows
+     * @param columnCount positive number of columns
      * @param seed starting value for the random sequence
      * @param wallProbability finite probability between zero and one, inclusive
      * @return a new immutable grid
      * @throws IllegalArgumentException if dimensions are nonpositive, the cell
      *         count exceeds {@link Integer#MAX_VALUE}, or probability is invalid
      */
-    public Grid generate(int rows, int columns, long seed, double wallProbability) {
-        if (rows <= 0 || columns <= 0) {
+    public Grid generate(int rowCount, int columnCount, long seed, double wallProbability) {
+        if (rowCount <= 0 || columnCount <= 0) {
             throw new IllegalArgumentException("Rows and columns must be positive.");
         }
         // Cast before multiplying so large dimensions cannot overflow an int.
-        long cellCount = (long) rows * columns;
+        long cellCount = (long) rowCount * columnCount;
         if (cellCount > Integer.MAX_VALUE) {
             throw new IllegalArgumentException("Grid has too many cells for array indexing.");
         }
@@ -46,6 +46,6 @@ public final class RandomGridGenerator {
         for (int index = 0; index < walls.length; index++) {
             walls[index] = random.nextDouble() < wallProbability;
         }
-        return new Grid(rows, columns, walls, costs);
+        return new Grid(rowCount, columnCount, walls, costs);
     }
 }
