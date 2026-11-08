@@ -1,6 +1,3 @@
-import { SectionTitle } from "../../ui/SectionTitle";
-
-import { ChevronDownIcon } from '../../icons/ChevronDownIcon'
 import { LockIcon } from '../../icons/LockIcon'
 import { Tag } from '../../ui/Tag'
 
@@ -16,55 +13,55 @@ const terrainOptions: SegmentOption[] = [
     { value: 'pavement', label: 'Pavement', keyColor: 'var(--color-terrain-pavement)' },
 ]
 
+type TerrainSectionProps = {
+    hidden?: boolean
+}
 
-export function TerrainSection() {
+export function TerrainSection({ hidden }: TerrainSectionProps) {
     return (
-        <section className={styles.section} aria-labelledby="terrain-title">
-            <details className={styles.details}>
-                <summary className={styles.summary}>
-                    <SectionTitle id="terrain-title" dotColor="var(--color-dot-terrain)">
-                        Terrain
-                    </SectionTitle>
-                    <span className={styles.meta}>
-                        <Tag>
-                            <LockIcon size={12} strokeWidth={2.2}/>
-                            Coming soon
-                        </Tag>
-                        <span className={styles.chevron}>
-                            <ChevronDownIcon />                        
-                        </span>
-                    </span>
-                </summary>
-                <div className={styles.body}>
-                    <fieldset className={styles.locked} disabled aria-describedby="terrain-note">
-                        <legend className="visually-hidden">Terrain settings, not available yet</legend>
-                        <Field label="Type" labelId="terrain-type-label">
-                            <SegmentedControl options={terrainOptions} labelId="terrain-type-label" />
-                        </Field>
-                        <Field
-                        label="Height"
-                        htmlFor="terrain-height"
-                        trailing={<span className={styles.value}>0</span>}
-                        >
-                            <input
-                            id="terrain-height"
-                            className={styles.slider}
-                            type="range"
-                            min={0}
-                            max={5}
-                            defaultValue={0}
-                            />
-                            <div className={styles.scale}>
-                                <span>Flat</span>
-                                <span>Steep</span>
-                            </div>
-                        </Field>
-                    </fieldset>
-                    <p id="terrain-note" className={styles.note}>
-                        Weighted cells: moving costs more on rough ground and slopes.
-                    </p>
-                </div>
-            </details>
+        <section
+            id="panel-terrain"
+            className={styles.section}
+            role="tabpanel"
+            aria-labelledby="tab-terrain"
+            hidden={hidden}
+        >
+            <div className={styles.intro}>
+                <p className={styles.lead}>Paint cells with different ground and height.</p>
+                <Tag>
+                    <LockIcon size={12} strokeWidth={2.2} />
+                    Coming soon
+                </Tag>
+            </div>
+
+            <fieldset className={styles.locked} disabled aria-describedby="terrain-note">
+                <legend className="visually-hidden">Terrain settings, not available yet</legend>
+                <Field label="Type" labelId="terrain-type-label">
+                    <SegmentedControl options={terrainOptions} labelId="terrain-type-label" />
+                </Field>
+                <Field
+                    label="Height"
+                    htmlFor="terrain-height"
+                    trailing={<span className={styles.value}>0</span>}
+                >
+                    <input
+                        id="terrain-height"
+                        className={styles.slider}
+                        type="range"
+                        min={0}
+                        max={5}
+                        defaultValue={0}
+                    />
+                    <div className={styles.scale}>
+                        <span>Flat</span>
+                        <span>Steep</span>
+                    </div>
+                </Field>
+            </fieldset>
+
+            <p id="terrain-note" className={styles.note}>
+                Weighted cells: moving costs more on rough ground and slopes.
+            </p>
         </section>
     )
 }

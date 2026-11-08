@@ -1,0 +1,67 @@
+.tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 6px 20px 0 0;
+  background: var(--color-grid-well);
+}
+
+.tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: var(--radius-control) var(--radius-control) 0 0;
+  background: transparent;
+  color: var(--color-ink-subtle);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tab:hover {
+  background: var(--color-hover-ghost);
+  color: var(--color-ink);
+}
+
+.tab.selected {
+  z-index: 1;
+  background: var(--color-panel);
+  color: var(--color-ink);
+}
+
+/* Small inverted curves at the bottom corners of the selected tab */
+.tab.selected::before,
+.tab.selected::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+}
+
+.tab.selected::before {
+  left: -12px;
+  background: radial-gradient(circle at 0 0, transparent 11.5px, var(--color-panel) 12px);
+}
+
+.tab.selected::after {
+  right: -12px;
+  background: radial-gradient(circle at 100% 0, transparent 11.5px, var(--color-panel) 12px);
+}
+
+.tab.selected:first-child::before {
+  display: none;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: var(--radius-key);
+}

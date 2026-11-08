@@ -1,59 +1,13 @@
 .section {
-  padding: 12px 20px;
-  background: var(--color-panel-inset);
-}
-
-.summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 4px 0;
-  border-radius: 8px;
-  list-style: none;
-  cursor: pointer;
-}
-
-.summary::-webkit-details-marker {
-  display: none;
-}
-
-.body {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 12px 0 6px;
+  padding: 16px 20px 18px;
 }
 
 .note {
   font-size: 12px;
   color: var(--color-ink-subtle);
-}
-
-.meta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-
-.chevron {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  transition: transform 0.15s;
-}
-
-.summary:hover .chevron {
-  background: var(--color-grid-well);
-}
-
-.details[open] .chevron{
-  transform: rotate(180deg);
 }
 
 .locked{
@@ -110,4 +64,16 @@
   justify-content: space-between;
   font-size: 11.5px;
   color: var(--color-ink-subtle);
+}
+
+.intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.lead{
+  font-size: 13px;
+  color: var(--color-ink-soft);
 }

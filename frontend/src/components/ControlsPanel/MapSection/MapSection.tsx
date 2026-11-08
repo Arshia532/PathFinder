@@ -1,7 +1,7 @@
 import { GRID_COLS, GRID_ROWS, placeholderSeed, placeholderTool } from '../../../data/placeholder';
 import { GRID_MAX_SIZE, GRID_MIN_SIZE, gridSizePresets } from '../../../data/gridPresets';
 import { Field } from '../../ui/Field';
-import { SectionTitle } from '../../ui/SectionTitle';
+//import { SectionTitle } from '../../ui/SectionTitle';
 import { ChevronDownIcon } from '../../icons/ChevronDownIcon';
 import { Stepper } from '../../ui/Stepper';
 import { Button } from '../../ui/Button';
@@ -19,13 +19,19 @@ const toolOptions: SegmentOption[] = [
     { value: 'erase', label: 'Erase', keyColor: 'var(--color-cell-empty)', keyOutline: true },
 ]
 
-export function MapSection () {
+type MapSectionProps = {
+    hidden?: boolean
+}
+
+export function MapSection ({ hidden }: MapSectionProps) {
     return (
-        <section className={styles.section} aria-labelledby="map-title">
-            <SectionTitle id="map-title" dotColor="var(--color-dot-map)">
-                Map
-            </SectionTitle>
-            
+        <section
+        id='panel-map'
+        className={styles.section}
+        role='tabpanel'
+        aria-labelledby="tab-map"
+        hidden={hidden}
+        >
             <div className={styles.fields}>
                 <Field label="Seed" htmlFor="seed">
                     <input className={`${styles.input} ${styles.mono}`}  id='seed' type='text' inputMode='numeric' defaultValue={placeholderSeed} />

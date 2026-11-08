@@ -7,12 +7,12 @@
   overflow: hidden;
 }
 
-.panel > * + * {
+.panel > section + section:not([role='tabpanel']) {
   border-top: 1px solid var(--color-divider);
 }
-
 .header {
-  padding: 14px 20px;
+  padding: 14px 20px 6px;
+  background: var(--color-grid-well);
 }
 
 .title {

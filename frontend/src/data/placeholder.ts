@@ -14,7 +14,7 @@ export const placeholderSeed = '48213';
 
 export const placeholderTool = 'wall';
 
-export const placeholderAlgorithm = 'astar'
+export const placeholderAlgorithm = 'astar';
 
 export const placeholderBidirection = false;
 
