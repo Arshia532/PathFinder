@@ -31,3 +31,14 @@
 .ghost:hover {
   background: var(--color-hover-ghost);
 }
+
+.light {
+  height: var(--size-control-compact);
+  background: var(--color-field);
+  border-color: var(--color-line);
+  color: var(--color-ink);
+}
+
+.light:hover{
+  background: var(--color-hover-field);
+}

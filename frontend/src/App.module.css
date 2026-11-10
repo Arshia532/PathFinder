@@ -24,3 +24,18 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* @media (min-width: 1041px) {
+  .sideColumn {
+    position: sticky;
+    top: 24px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+}
+
+.sideColumn > * {
+    flex-shrink: 0;
+  } */

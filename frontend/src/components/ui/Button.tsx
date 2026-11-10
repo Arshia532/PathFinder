@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import styles from './Button.module.css'
 
 type ButtonProps = {
-    variant?: 'primary' | 'ghost'
+    variant?: 'primary' | 'ghost' | 'light'
     className?: string
     children: ReactNode
 }
