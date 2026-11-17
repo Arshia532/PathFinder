@@ -1,2 +1,6 @@
+# Store text files with LF in the repository on every machine, whatever each
+# contributor's Git settings are. Git still checks them out in the local style.
+* text=auto
+
 backend/mvnw text eol=lf
 backend/mvnw.cmd text eol=crlf

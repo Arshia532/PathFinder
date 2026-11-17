@@ -1,7 +1,10 @@
 package pathfinder.grid;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
@@ -62,6 +65,50 @@ class GridTest {
                 assertEquals(-1, buffer[remaining], "Unused buffer entries remain unchanged");
             }
         }
+    }
+
+    @Test
+    void neighborsMatchTheDefinitionOnRandomWalls() {
+        Random random = new Random(2101L);
+        for (int trial = 0; trial < 200; trial++) {
+            int rows = 1 + random.nextInt(8);
+            int columns = 1 + random.nextInt(8);
+            boolean[] walls = new boolean[rows * columns];
+            int[] costs = new int[rows * columns];
+            for (int index = 0; index < walls.length; index++) {
+                walls[index] = random.nextInt(3) == 0;
+                costs[index] = 1 + random.nextInt(Grid.MAX_TERRAIN_COST);
+            }
+            Grid grid = new Grid(rows, columns, walls, costs);
+            int[] buffer = new int[Grid.MAX_NEIGHBORS];
+            // Up, right, down, left as (row change, column change).
+            int[][] directions = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
+            for (int index = 0; index < grid.size(); index++) {
+                List<Integer> expected = new ArrayList<>();
+                if (!walls[index]) {
+                    for (int[] direction : directions) {
+                        int row = index / columns + direction[0];
+                        int column = index % columns + direction[1];
+                        if (grid.contains(row, column) && !walls[row * columns + column]) {
+                            expected.add(row * columns + column);
+                        }
+                    }
+                }
+                int count = grid.neighbors(index, buffer);
+                List<Integer> actual = new ArrayList<>();
+                for (int i = 0; i < count; i++) {
+                    actual.add(buffer[i]);
+                }
+                assertEquals(expected, actual, "Neighbors of " + index + " in trial " + trial);
+            }
+        }
+    }
+
+    @Test
+    void neighborsAcceptALargerBuffer() {
+        int[] buffer = {-1, -1, -1, -1, -1, -1};
+        assertEquals(2, new Grid(2, 2).neighbors(0, buffer));
+        assertArrayEquals(new int[] {1, 2, -1, -1, -1, -1}, buffer);
     }
 
     @Test
@@ -160,6 +207,7 @@ class GridTest {
         assertEquals(second, third);
         assertEquals(first, third);
         assertEquals(first.hashCode(), second.hashCode());
+        assertEquals(first.hashCode(), first.hashCode(), "The hash is stable");
         assertEquals(new Grid(1, 2), new Grid(1, 2, new boolean[2], new int[] {1, 1}, 100));
 
         var grids = new HashSet<Grid>();

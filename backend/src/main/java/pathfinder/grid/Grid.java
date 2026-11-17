@@ -119,6 +119,7 @@ public final class Grid {
 
     /**
      * Returns the number of rows.
+     *
      * @return the positive row count
      */
     public int rows() {
@@ -127,6 +128,7 @@ public final class Grid {
 
     /**
      * Returns the number of columns.
+     *
      * @return the positive column count
      */
     public int columns() {
@@ -135,6 +137,7 @@ public final class Grid {
 
     /**
      * Returns the configured inclusive limit, not the largest cost present in the map.
+     *
      * @return the terrain-cost limit, from 1 to 100
      */
     public int maxTerrainCost() {
@@ -143,6 +146,7 @@ public final class Grid {
 
     /**
      * Returns the total number of cells, including walls.
+     *
      * @return the cell count
      */
     public int size() {
@@ -151,6 +155,7 @@ public final class Grid {
 
     /**
      * Tests coordinates without throwing for negative or out-of-bounds values.
+     *
      * @param rowIndex the zero-based row index to test
      * @param columnIndex the zero-based column index to test
      * @return whether the coordinates are inside this grid
@@ -162,6 +167,7 @@ public final class Grid {
 
     /**
      * Converts a position to its row-major cell index.
+     *
      * @param position the position to convert
      * @return an index between zero (inclusive) and {@link #size()} (exclusive)
      * @throws NullPointerException if the position is null
@@ -179,6 +185,7 @@ public final class Grid {
 
     /**
      * Converts a cell index to a position.
+     *
      * @param index the row-major cell index
      * @return the cell's position
      * @throws IndexOutOfBoundsException if the index is outside this grid
@@ -190,6 +197,7 @@ public final class Grid {
 
     /**
      * Tests whether a cell is a wall.
+     *
      * @param index the row-major cell index
      * @return whether the cell is impassable
      * @throws IndexOutOfBoundsException if the index is outside this grid
@@ -201,6 +209,7 @@ public final class Grid {
     /**
      * Returns a cell's terrain cost. A positive cost does not imply that the
      * cell is traversable; callers must also respect {@link #isBlocked(int)}.
+     *
      * @param index the row-major cell index
      * @return the positive terrain cost
      * @throws IndexOutOfBoundsException if the index is outside this grid

@@ -18,8 +18,19 @@ class PositionTest {
     }
 
     @Test
+    void exposesItsCoordinatesAndAllowsTheOrigin() {
+        Position position = new Position(4, 7);
+        assertEquals(4, position.row());
+        assertEquals(7, position.column());
+        assertEquals(new Position(0, 0), new Position(0, 0));
+        assertNotEquals(new Position(1, 2), new Position(2, 1), "Row and column are not interchangeable");
+    }
+
+    @Test
     void rejectsNegativeCoordinates() {
         assertThrows(IllegalArgumentException.class, () -> new Position(-1, 0));
         assertThrows(IllegalArgumentException.class, () -> new Position(0, -1));
+        assertThrows(IllegalArgumentException.class, () -> new Position(-1, -1));
+        assertThrows(IllegalArgumentException.class, () -> new Position(Integer.MIN_VALUE, 0));
     }
 }
