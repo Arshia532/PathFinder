@@ -3,10 +3,11 @@ import styles from './Switch.module.css'
 type SwitchProps = {
     id: string
     label: string
-    defaultChecked?: boolean
+    checked?: boolean
+    onChange: (checked: boolean) => void
 }
 
-export function Switch({id, label, defaultChecked = false}: SwitchProps) {
+export function Switch({id, label, checked, onChange}: SwitchProps) {
     return (
         <label htmlFor={id} className={styles.row}>
             {label}
@@ -15,7 +16,8 @@ export function Switch({id, label, defaultChecked = false}: SwitchProps) {
                 className={styles.switch}
                 type='checkbox'
                 role='switch'
-                defaultChecked={defaultChecked}
+                checked={checked}
+                onChange={(e) => onChange(e.target.checked)}
             />
         </label>
     )

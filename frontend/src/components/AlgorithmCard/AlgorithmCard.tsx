@@ -1,9 +1,14 @@
+import type { AlgorithmId } from '../../api/types'
 import { algorithms } from '../../data/algorithms'
-import { placeholderAlgorithm, placeholderBidirection } from '../../data/placeholder'
 import styles from './AlgorithmCard.module.css'
 
-export function AlgorithmCard() {
-    const algorithm = algorithms.find((a) => a.id === placeholderAlgorithm)
+type AlgorithmCardProps = {
+    algorithm: AlgorithmId
+    bidirectional: boolean
+}
+
+export function AlgorithmCard({ algorithm: algorithmId, bidirectional }: AlgorithmCardProps) {
+    const algorithm = algorithms.find((a) => a.id === algorithmId)
     if (!algorithm) return null
 
     return (
@@ -13,7 +18,7 @@ export function AlgorithmCard() {
             </h2>
             <p className={styles.text}>{algorithm.description}</p>
 
-            {placeholderBidirection && (
+            {bidirectional && (
                 <p className={styles.note}>
                 Bi-directional: a second search starts from the end, and both stop where they meet.
                 </p>

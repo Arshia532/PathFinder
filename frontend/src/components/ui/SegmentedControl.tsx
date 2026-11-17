@@ -1,20 +1,23 @@
 import styles from './SegmentedControl.module.css'
 
-export type SegmentOption = {
-    value: string 
+export type SegmentOption<T extends string = string> = {
+    value: T
     label: string
     keyColor?: string
     keyOutline?: boolean
 }
 
-type SegmentedControlProps = {
-    options: SegmentOption[]
-    selected?: string
+type SegmentedControlProps<T extends string = string> = {
+    options: SegmentOption<T>[]
+    selected?: T
+    onSelect?: (value: T) => void
     labelId: string
     tone?: 'neutral' | 'accent'
 }
 
-export function SegmentedControl ({options, selected, labelId, tone}: SegmentedControlProps){
+export function SegmentedControl<T extends string>({
+    options, selected, onSelect, labelId, tone,
+    }: SegmentedControlProps<T>) {
     const selectedClass = tone === 'accent' ? styles.selectedAccent : styles.selected
     return(
         <div className={styles.track} role='group' aria-labelledby={labelId}>
@@ -26,6 +29,7 @@ export function SegmentedControl ({options, selected, labelId, tone}: SegmentedC
                     type='button'
                     className={`${styles.segment} ${isSelected ? selectedClass : ''}`}
                     aria-pressed={isSelected}
+                    onClick={() => onSelect?.(option.value)}
                     >
                         {option.keyColor && (
                             <span
