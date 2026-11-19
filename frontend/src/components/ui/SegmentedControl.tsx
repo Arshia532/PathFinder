@@ -5,7 +5,6 @@ export type SegmentOption<T extends string = string> = {
     label: string
     keyColor?: string
     keyOutline?: boolean
-    disabled?: boolean
 }
 
 type SegmentedControlProps<T extends string = string> = {
@@ -14,11 +13,10 @@ type SegmentedControlProps<T extends string = string> = {
     onSelect?: (value: T) => void
     labelId: string
     tone?: 'neutral' | 'accent'
-    disabled?: boolean
 }
 
 export function SegmentedControl<T extends string>({
-    options, selected, onSelect, labelId, tone, disabled,
+    options, selected, onSelect, labelId, tone,
     }: SegmentedControlProps<T>) {
     const selectedClass = tone === 'accent' ? styles.selectedAccent : styles.selected
     return(
@@ -31,7 +29,6 @@ export function SegmentedControl<T extends string>({
                     type='button'
                     className={`${styles.segment} ${isSelected ? selectedClass : ''}`}
                     aria-pressed={isSelected}
-                    disabled={disabled || option.disabled}
                     onClick={() => onSelect?.(option.value)}
                     >
                         {option.keyColor && (

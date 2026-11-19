@@ -1,6 +1,6 @@
 # PathFinder Visualizer — Frontend
 
-React + TypeScript client for PathFinder Visualizer. The Java
+React + TypeScript client for PathFinder Visualizer. The Java Spring Boot
 backend (`../backend`) runs every search and returns the recorded steps;
 this app draws the grid and replays those steps.
 
@@ -25,15 +25,7 @@ npm install
 npm run dev
 ```
 
-Start the Java API in a second terminal from `backend/` with
-`.\mvnw.cmd compile exec:java` on Windows or `sh ./mvnw compile exec:java`
-on Linux and macOS. Use JDK 26. Then open http://localhost:5173.
-
-Choose a grid size and seed, click **Generate Maze**, select **BFS** or **DFS**,
-and click **Run search**. Use the playback controls to see each Java search
-step. **Generate Random** uses the seeded Java obstacle generator.
-
-Vite sends `/api/maps/generate` and `/api/search` to the Java server on port 8080.
+Then open http://localhost:5173.
 
 ## Scripts
 

@@ -42,4 +42,3 @@
 .light:hover{
   background: var(--color-hover-field);
 }
-.button:disabled { opacity: 0.55; cursor: default; }

@@ -12,17 +12,6 @@
 
 .cell {
   aspect-ratio: 1;
-  border: 0;
-  padding: 0;
-  min-width: 0;
-  cursor: pointer;
   background: var(--color-cell-empty);
   border-radius: var(--radius-cell);
 }
-.cell[data-kind='wall'] { background: var(--color-cell-wall); }
-.cell[data-kind='start'] { background: var(--color-cell-start); }
-.cell[data-kind='end'] { background: var(--color-cell-end); }
-.cell[data-kind='visited'] { background: var(--color-cell-visited); }
-.cell[data-kind='frontier'] { background: var(--color-cell-frontier); }
-.cell[data-kind='current'] { background: var(--color-cell-current); }
-.cell[data-kind='path'] { background: var(--color-cell-path); }

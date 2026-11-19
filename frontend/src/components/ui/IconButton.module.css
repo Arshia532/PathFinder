@@ -33,5 +33,3 @@
 .primary:hover {
   background: var(--color-ink);
 }
-
-.button:disabled { opacity: 0.55; cursor: default; }
