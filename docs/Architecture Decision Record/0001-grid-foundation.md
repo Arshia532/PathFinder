@@ -57,13 +57,15 @@ construction once the team agrees on supported sizes and playback limits.
   costs the terrain of `v`, rather than the terrain of `u`.
 - Maps may have no route, whether generated or user-created. An unreachable
   destination is a normal search outcome. The UI should explain that the
-  destination cannot be reached on that map. Search
-  outcomes and UI messaging are not implemented in this step.
+  destination cannot be reached on that map. The search layer implements this
+  outcome (see [0004](0004-shared-search-engine.md)); UI messaging is not
+  implemented yet.
 - Blocked start or destination cells must be rejected, with a message asking
-  for traversable endpoints. Validate endpoints before checking whether they are identical.
+  for traversable endpoints. Validate endpoints before checking whether they
+  are identical.
 - Identical traversable endpoints return immediate success with zero moves and
-  zero cost. Endpoint validation and this result belong to the search layer and
-  are not implemented yet.
+  zero cost. Endpoint validation and this result belong to the search layer
+  (see [0004](0004-shared-search-engine.md)).
 - No movement interfaces, terrain hierarchy, or separate object per cell is needed
   yet. Add abstractions when a concrete requirement justifies them.
 
@@ -76,9 +78,9 @@ construction once the team agrees on supported sizes and playback limits.
 
 `backend/verify.ps1` delegates to Maven's `verify` phase, which compiles with
 warnings treated as errors, runs JUnit tests, packages the domain JAR, and generates
-coverage and strict JavaDocs. Tests cover rectangular coordinates, all boundaries,
-one-row/one-column maps, walls, weighted
-terrain, independent input copies, and invalid input including dimension overflow.
+coverage and strict JavaDocs. Tests cover rectangular coordinates, all
+boundaries, one-row and one-column maps, walls, weighted terrain, independent
+input copies, and invalid input including dimension overflow.
 
 Grid and position checks are separate JUnit test files and pass on JDK 26.
 See [0003](0003-terrain-limits-and-grid-equality.md) for terrain-limit validation

@@ -1,41 +1,48 @@
 # Backend
 
-Java backend for the domain model, pathfinding algorithms, and map generation.
+The Java backend of PathFinder: the grid model, map generation, and pathfinding
+algorithms. It is plain Java with no runtime dependencies.
 
-The grid foundation is implemented as plain Java. Spring Boot and the search
-algorithms have not been added yet.
+| Package                 | Contents                                       | Design record                                                                                                                                                       |
+| ----------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pathfinder.grid`       | `Grid` and `Position`: the immutable map model | [0001](../docs/Architecture%20Decision%20Record/0001-grid-foundation.md), [0003](../docs/Architecture%20Decision%20Record/0003-terrain-limits-and-grid-equality.md) |
+| `pathfinder.generation` | `RandomGridGenerator`: seeded random walls     | [0005](../docs/Architecture%20Decision%20Record/0005-seeded-random-generation.md)                                                                                   |
+| `pathfinder.search`     | The shared search loop, BFS, and DFS           | [0004](../docs/Architecture%20Decision%20Record/0004-shared-search-engine.md)                                                                                       |
+
+Sources are in `src/main/java/`, and each package has matching tests in
+`src/test/java/`. The build is described in
+[ADR 0002](../docs/Architecture%20Decision%20Record/0002-maven-build.md).
+
+Not yet implemented: Dijkstra, A\*, bidirectional search, playback recording,
+and the Spring Boot web layer.
 
 ## Grid model
 
-- `src/main/java/pathfinder/grid/Grid.java`: immutable map, walls, terrain costs,
-  coordinate conversion, and four-direction neighbors.
-- `src/main/java/pathfinder/grid/Position.java`: immutable row and column value.
-- `src/test/java/pathfinder/grid/GridTest.java`: grid behavior and validation tests.
-- `src/test/java/pathfinder/grid/PositionTest.java`: position value and validation tests.
+`Grid` is an immutable rectangular map. It follows these rules:
 
-The grid uses four-direction movement, zero-based coordinates, positive integer
-terrain costs paid on entry, and no initial cost for the starting cell.
-New open grids have terrain cost `1` everywhere. A grid accepts a configured
-maximum terrain cost from `1` to `100`, inclusive; the default maximum is `100`.
-Every cell's cost, including terrain under walls, must be within that limit.
-Walls and terrain are independent. Search state and endpoints belong outside
-the map.
+- Coordinates are zero-based. Rows increase downward and columns increase to
+  the right.
+- Movement is in four directions: up, right, down, and left. Edges do not wrap.
+- Each cell is either open or a wall. A wall cannot be entered.
+- Each cell has an integer terrain cost from `1` to the grid's configured
+  maximum. The maximum is between `1` and `100` and defaults to `100`. New open
+  grids have cost `1` everywhere.
+- Entering a cell costs its terrain cost. The start cell adds no cost.
+- Walls and terrain are independent: a wall keeps its terrain cost, which must
+  also be within the limit.
+- A grid stores map data only. Endpoints and search state belong to the search
+  layer.
 
-See [the grid design decision](../docs/Architecture%20Decision%20Record/0001-grid-foundation.md)
-for the rules, performance characteristics, and open integration decisions.
+`Position` is an immutable record of a row and a column. It rejects negative
+coordinates but is not tied to a grid; `Grid` checks whether a position is
+inside that map.
 
-## How the grid works
+### Storage and indexing
 
-`Position` is an immutable Java record containing a row and a column. It rejects
-negative coordinates. A position can exist independently of a grid; `Grid`
-checks whether it is inside that particular map. Records provide coordinate-based
-equality and consistent hashing automatically.
-
-`Grid` stores two flat arrays: a `boolean[]` for walls and an `int[]` for terrain
-costs. Each cell uses the same index in both arrays. An index is calculated as
-`rowIndex * columnCount + columnIndex`. Here, `rowIndex` and `columnIndex` are
-zero-based coordinates, while `columnCount` is the total number of columns.
-For example, in a three-row, four-column grid:
+`Grid` stores two flat arrays: a `boolean[]` of walls and an `int[]` of terrain
+costs. A cell has the same index in both, calculated as
+`rowIndex * columnCount + columnIndex` (row-major order). In a grid with three
+rows and four columns, the indices are:
 
 ```text
  0  1  2  3
@@ -43,122 +50,237 @@ For example, in a three-row, four-column grid:
  8  9 10 11
 ```
 
-Position `(1, 2)` has index `1 * 4 + 2 = 6`: skip one complete row of four cells,
-then move two cells into the next row. The column count is `4`; the last column's
-index is `3`. The cell's neighbors, when open, are indices `2`, `7`, `10`, and
-`5`: up, right, down, left. Edges never wrap to the next row. Walls are
-excluded, and a wall used as the source returns no neighbors.
+Position `(1, 2)` has index `1 * 4 + 2 = 6`. Its neighbors, when open, are
+returned in the order up, right, down, left: `2`, `7`, `10`, `5`. Walls are
+excluded, and a wall has no neighbors.
 
-| Operation | Purpose |
-| --- | --- |
-| `rows()`, `columns()`, `size()` | Read dimensions and total cell count. |
-| `contains(rowIndex, columnIndex)` | Check bounds without throwing for invalid coordinates. |
-| `indexOf(position)` | Convert a valid position to its cell index. |
-| `positionAt(index)` | Convert a valid index to a new position. |
-| `isBlocked(index)` | Check whether the cell is a wall. |
-| `terrainCost(index)` | Read its positive terrain cost, including terrain under walls. |
-| `maxTerrainCost()` | Read the configured upper bound, not the largest cost present. |
-| `neighbors(index, buffer)` | Write open neighbors and return how many were written. |
-| `equals(other)`, `hashCode()` | Compare and hash grid values consistently. |
+| Operation                         | Purpose                                                                  |
+| --------------------------------- | ------------------------------------------------------------------------ |
+| `rows()`, `columns()`, `size()`   | Read the dimensions and the total cell count.                            |
+| `contains(rowIndex, columnIndex)` | Check bounds without throwing.                                           |
+| `indexOf(position)`               | Convert a position to its cell index.                                    |
+| `positionAt(index)`               | Convert a cell index to a position.                                      |
+| `isBlocked(index)`                | Check whether a cell is a wall.                                          |
+| `terrainCost(index)`              | Read a cell's terrain cost, including terrain under a wall.              |
+| `maxTerrainCost()`                | Read the configured limit, not the largest cost present.                 |
+| `neighbors(index, buffer)`        | Write the open neighbors into `buffer` and return how many were written. |
+| `equals(other)`, `hashCode()`     | Compare and hash grids by value.                                         |
 
-Construction copies the supplied arrays, so changing the original inputs cannot
-change an existing grid. There are no editing setters or exposed internal arrays.
-Map edits produce a new snapshot. Start/destination selection, visited flags,
-distances, and paths belong to the search layer rather than the map.
+### Immutability and equality
 
-Creating a grid takes O(rowCount * columnCount) time and memory. Cell lookups and
-neighbor discovery take O(1) time. Neighbor discovery reuses the caller's buffer
-and creates no objects. Comparing distinct grids and computing a hash take
-O(cellCount) time in the worst case because they examine the cell arrays.
-Dimension validation prevents integer overflow, but an application cell limit
-still needs to be agreed upon to keep memory and playback practical.
+The constructor copies its input arrays, and the grid has no setters and exposes
+no internal arrays, so a grid never changes after construction. Editing a map
+means creating a new grid.
 
-Nonpositive dimensions, wrong array lengths, invalid terrain limits or cell
-costs, and short neighbor buffers cause `IllegalArgumentException`. Limits
-outside `1-100` are rejected rather than silently clamped. Null required inputs
-cause `NullPointerException`; out-of-bounds positions or indices cause
-`IndexOutOfBoundsException`. Full contracts are documented in the JavaDocs.
+Two grids are equal when their dimensions, configured terrain limit, walls, and
+all terrain costs (including terrain under walls) match. `hashCode()` uses the
+same values, so grids work correctly in `HashSet` and as `HashMap` keys. Hashes
+can collide and must not be used as unique map identifiers.
 
-## Example
+### Errors
+
+| Cause                                                                                                                                                    | Exception                   |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| Nonpositive dimensions, wrong array lengths, a terrain limit outside `1`-`100`, a cost outside the limit, or a neighbor buffer shorter than four entries | `IllegalArgumentException`  |
+| A null argument                                                                                                                                          | `NullPointerException`      |
+| A position or index outside the grid                                                                                                                     | `IndexOutOfBoundsException` |
+
+Invalid values are rejected, never clamped or wrapped. The JavaDocs state the
+full contract of each method.
+
+### Performance
+
+Creating a grid takes O(rowCount \* columnCount) time and memory. Cell lookups
+and neighbor discovery take O(1) time, and neighbor discovery allocates nothing
+because it writes into the caller's buffer. Comparing or hashing grids takes
+O(cellCount) time in the worst case. Dimension validation prevents integer
+overflow, but the application still needs an agreed cell limit to keep memory
+and playback practical.
+
+### Example
 
 ```java
 import pathfinder.grid.Grid;
 import pathfinder.grid.Position;
 
+// An open grid: 3 rows, 4 columns, cost 1 everywhere.
 Grid grid = new Grid(3, 4);
 int start = grid.indexOf(new Position(1, 2));
 int[] neighbors = new int[Grid.MAX_NEIGHBORS];
 int count = grid.neighbors(start, neighbors);
 
-for (int i = 0; i < count; i++) {
+for (int i = 0; i < count; i++) {   // Only the first `count` entries are valid.
     int next = neighbors[i];
     int entryCost = grid.terrainCost(next);
-    // The search algorithm uses next and entryCost here.
 }
-```
 
-To create a map with walls and terrain, prepare a `boolean[]` and a positive
-`int[]` with `rowCount * columnCount` entries each. Fill the cost array with `1`
-before assigning any difficult terrain. Pass them to
-`new Grid(rowCount, columnCount, walls, costs)`. Both arrays use row-major order
-and are copied by the constructor. Later changes to those inputs do not change
-the grid.
-
-To select a lower terrain limit, pass it as the final constructor argument:
-
-```java
-Grid open = new Grid(3, 4, 20);
+// A grid with a wall, weighted terrain, and a terrain limit of 20.
 Grid weighted = new Grid(1, 3,
         new boolean[] {false, true, false}, new int[] {1, 5, 20}, 20);
 ```
 
-Both grids have a configured maximum of `20`; the open grid still starts with
-cost `1` everywhere. A cell cost of `21` is invalid on these grids. A configured
-maximum of `101` is always invalid. The original constructors remain available
-and use the default maximum of `100`.
+Both arrays are in row-major order and must contain `rowCount * columnCount`
+entries. Reuse one neighbor buffer within a search, and give each concurrent
+search its own.
 
-Read only the first `count` entries in the neighbor buffer. Reuse the buffer
-within one search; give separate searches their own buffers.
+## Random generation
 
-## Grid equality
+`RandomGridGenerator` creates a grid of random walls from a seed:
 
-Two grids are equal when their row and column counts, configured terrain limit,
-wall positions, and all terrain costs match. Array contents are compared, so
-separately constructed snapshots can be equal. Terrain under walls is included.
-Different configured limits mean different grid values, even when current cell
-contents match.
-
-`hashCode()` uses those same values, allowing equal grids to work consistently
-in `HashSet` and as `HashMap` keys. Hashes can collide and must not be used as
-unique map identifiers. No application cache or deduplication feature is added
-by these methods.
-
-A custom `toString()` is not implemented. It could provide a small debugging
-summary later; printing a full grid or serializing it for the frontend should
-use a deliberately designed representation.
-
-Terrain costs above `100` that earlier versions accepted now cause an exception.
-Existing constructor signatures remain available, but callers must supply costs
-within the new range. Grid comparisons now use values rather than object identity.
-
-## Verify locally
-
-Use JDK 26. Maven's build rules reject other Java major versions. In your IDE,
-select JDK 26 for both the project SDK and Maven runner/importer. Open
-`backend/pom.xml` as a Maven project to load the dependencies and tests.
-
-The existing terminal may still select an older JDK after installation. For the
-current PowerShell session, set the installation path and put its tools first:
-
-```powershell
-$env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-26.0.2.101-hotspot'
-$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
-java -version
-javac -version
+```java
+Grid grid = new RandomGridGenerator().generate(21, 30, 48213L, 0.30);
 ```
 
-Use your own installation directory if it differs. These assignments affect the
-current terminal only. No system-wide Java default is changed by the project.
+Each cell independently becomes a wall with the given probability, so `0.30`
+produces roughly, not exactly, 30% walls. The same rows, columns, seed, and
+probability always produce the same walls, so sharing a seed reproduces a map.
+Every cell has terrain cost `1`.
+
+The generator does not choose endpoints and does not guarantee that a route
+exists. It may place a wall on a cell the user later selects as the start or
+destination; the team has not yet decided whether the generator or the API layer
+should keep those cells open.
+
+The design is recorded in
+[ADR 0005](../docs/Architecture%20Decision%20Record/0005-seeded-random-generation.md).
+
+## Search
+
+`src/main/java/pathfinder/search/` finds a path between two cells of a grid. BFS
+and DFS are implemented on one shared search loop, so Dijkstra and A\* can be
+added as small subclasses. The reasons for this design are recorded in
+[ADR 0004](../docs/Architecture%20Decision%20Record/0004-shared-search-engine.md).
+
+```java
+Grid grid = new Grid(3, 3);
+SearchAlgorithm algorithm = new BreadthFirstSearch();   // or new DepthFirstSearch()
+SearchResult result = algorithm.search(grid, new Position(0, 0), new Position(2, 2));
+
+if (result.found()) {
+    result.path();           // [(0,0), (0,1), (0,2), (1,2), (2,2)]
+    result.moves();          // 4
+    result.cost();           // 4: the sum of the terrain costs entered
+    result.expandedCount();  // 9: cells expanded, shown as "nodes visited"
+}
+```
+
+### How a search works
+
+Every algorithm follows the same procedure: begin at the start cell, examine its
+neighbors, then their neighbors, and continue until the goal is reached or no
+cells remain. The algorithms differ only in **which cell they examine next**.
+The code uses four terms:
+
+| Term     | Meaning                                                                                         |
+| -------- | ----------------------------------------------------------------------------------------------- |
+| Frontier | The cells that have been discovered but not yet expanded.                                       |
+| Discover | Reach a cell for the first time and add it to the frontier.                                     |
+| Expand   | Remove a cell from the frontier and examine its neighbors.                                      |
+| Parent   | The cell from which a cell was reached. Following parents back from the goal rebuilds the path. |
+
+The shared loop in `SearchAlgorithm.search` is:
+
+```text
+add the start to the frontier
+while the frontier is not empty:
+    take the next cell from the frontier
+    if it was already expanded, skip it (an outdated entry)
+    mark it expanded; if it is the goal, follow the parents back and return the path
+    for each open neighbor (up, right, down, left) that is not expanded:
+        if the algorithm keeps this route to the neighbor:
+            record its parent and cost, and add it to the frontier
+the frontier is empty: the goal cannot be reached
+```
+
+Each algorithm defines its behavior by overriding two methods:
+
+| Algorithm          | Frontier (`createFrontier`)                                            | Keep a new route? (`shouldUpdate`) | Result                                         |
+| ------------------ | ---------------------------------------------------------------------- | ---------------------------------- | ---------------------------------------------- |
+| BFS                | Queue: first in, first out                                             | Only the first route found         | Fewest moves                                   |
+| DFS                | Stack: last in, first out                                              | Always the newest route            | A valid path, usually not the shortest         |
+| Dijkstra (planned) | Priority queue: lowest cost so far first                               | Only a cheaper route               | Lowest cost                                    |
+| A\* (planned)      | Priority queue: lowest cost so far plus estimated remaining cost first | Only a cheaper route               | Lowest cost, usually with fewer cells expanded |
+
+**BFS** expands cells in order of distance from the start: every cell one move
+away, then every cell two moves away, and so on. The first route that reaches the
+goal therefore has the fewest moves. BFS ignores terrain cost when choosing a
+route, but reports the cost of the path it returns.
+
+**DFS** always expands the most recently discovered cell, so it follows one route
+until it reaches a dead end, then returns to the most recent cell that still has
+an unexplored neighbor. It finds a path whenever one exists, but that path is
+often long. Neighbors are pushed in the order up, right, down, left, so they are
+tried in the reverse order: left, down, right, up. When DFS reaches a cell that
+is already waiting on the stack, it keeps the new route and pushes the cell
+again, so the cell is expanded next; the older entry is skipped later. This is
+why its `shouldUpdate` always returns `true`.
+
+On an open 3x3 grid, searching from the top-left corner to the bottom-right
+corner, the numbers show the order in which cells are expanded:
+
+```text
+BFS             DFS
+1 2 4           1 . .
+3 5 7           2 . .
+6 8 9           3 4 5
+```
+
+BFS expands all 9 cells and returns right, right, down, down. DFS expands 5 cells
+and returns down, down, right, right. Both paths take 4 moves here; on maps with
+walls, DFS paths are often much longer.
+
+### Code structure
+
+| Type                                     | Role                                                                                                |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `SearchAlgorithm`                        | Abstract base class. Contains the shared `final` search loop and declares the two `abstract` steps. |
+| `BreadthFirstSearch`, `DepthFirstSearch` | Concrete algorithms. Each implements only the two steps.                                            |
+| `Frontier`                               | Interface for the collection of discovered cells: `push`, `pop`, `isEmpty`.                         |
+| `QueueFrontier`, `StackFrontier`         | Package-private frontiers backed by `int[]` arrays that grow when full.                             |
+| `SearchResult`                           | Immutable record of the path, its cost, and the number of cells expanded.                           |
+| `SearchObserver`                         | Optional listener that receives each step of a search. Playback recording will be built on it.      |
+
+The design uses two object-oriented techniques:
+
+- **Template Method pattern.** The base class fixes the steps of the search, and
+  each subclass supplies only the parts that vary. Because `search` is `final`,
+  the endpoint rules, path reconstruction, and cost accounting are identical for
+  every algorithm.
+- **Polymorphism through an interface.** The loop depends only on `Frontier`, so
+  replacing a queue with a stack changes the search order without changing the
+  loop.
+
+Search state is held in arrays indexed by cell: `parent` (`int[]`), `cost`
+(`long[]`, so large totals cannot overflow), and `expanded` (`boolean[]`). The
+frontiers also store primitive `int` values, which avoids allocating an `Integer`
+object for every cell, as `ArrayDeque<Integer>` would. Each search allocates its
+own state, so one algorithm instance can be reused and shared between threads.
+Each cell is expanded at most once, so time and memory are proportional to the
+number of cells.
+
+A `SearchObserver` passed to `search` is told when each cell is discovered and
+when it is expanded. Every cell is discovered at most once, always before it is
+expanded, and expanded at most once, for every algorithm.
+
+### Search rules
+
+- A start or destination outside the grid causes `IndexOutOfBoundsException`.
+- A start on a wall causes `IllegalArgumentException` with the message
+  `SearchAlgorithm.START_BLOCKED_MESSAGE`; a destination on a wall uses
+  `SearchAlgorithm.DESTINATION_BLOCKED_MESSAGE`. When both are walls, the start
+  is reported. Walls are checked before the next rule.
+- Identical traversable endpoints succeed with a one-cell path, zero moves, and
+  zero cost.
+- An unreachable destination is a normal result, not an error: `found()` is
+  `false` and the path is empty. The UI should explain that the destination
+  cannot be reached on that map.
+
+## Build and verification
+
+The build requires JDK 26. The Maven wrapper downloads and caches Maven 3.9.9 on
+first use and checks its SHA-256, so no separate Maven installation is needed.
+The first build needs a network connection to download Maven and the
+dependencies. The build rejects other Java and Maven versions.
 
 From the repository root in PowerShell:
 
@@ -166,98 +288,83 @@ From the repository root in PowerShell:
 ./backend/verify.ps1
 ```
 
-The script delegates to Maven's `verify` phase. It compiles with warnings treated
-as errors, runs JUnit tests, packages the domain code, generates coverage reports,
-and checks JavaDocs strictly. Generated files are ignored by Git.
+The script runs Maven's `verify` phase, which:
 
-Test sources in `src/test/` are included with production code in version control.
-The suite stays in two files: grid tests and position tests, covering
-the implemented contracts without a custom test framework. This project fails
-verification if no tests are discovered, so a missing suite cannot silently pass.
-Generated test results and coverage reports remain ignored.
+1. compiles the code, treating every compiler warning as an error;
+2. runs the JUnit tests, and fails if no tests are found;
+3. packages the domain JAR;
+4. generates the coverage report;
+5. generates the JavaDocs, treating every JavaDoc warning as an error.
 
-For direct Maven commands, open the backend directory:
+To run Maven directly:
 
 ```powershell
 cd backend
-.\mvnw.cmd -version
-.\mvnw.cmd test
-.\mvnw.cmd verify
+.\mvnw.cmd test            # unit tests only
+.\mvnw.cmd verify          # the full check
+.\mvnw.cmd clean verify    # the full check from a clean output directory
 ```
 
-`test` runs unit tests. `verify` also packages the code and generates coverage
-and JavaDocs. Use `clean verify` when you need a build from fresh output. On
-macOS/Linux use `sh ./mvnw` in place of `.\mvnw.cmd` (or `./mvnw` if executable).
-The wrapper downloads and caches Maven 3.9.9; the first build also downloads
-dependencies. An initial network connection is required. No separate Maven
-installation is needed. The wrapper checks the Maven distribution's SHA-256.
+On macOS and Linux, use `./mvnw` in place of `.\mvnw.cmd`.
 
-| Output | Location, relative to `backend/` |
-| --- | --- |
-| JUnit results | `target/surefire-reports/` |
-| Coverage report | `target/site/jacoco/index.html` |
-| API documentation | `target/site/apidocs/index.html` |
-| Domain JAR | `target/pathfinder-backend-0.1.0-SNAPSHOT.jar` |
+| Output            | Location, relative to `backend/`               |
+| ----------------- | ---------------------------------------------- |
+| JUnit results     | `target/surefire-reports/`                     |
+| Coverage report   | `target/site/jacoco/index.html`                |
+| API documentation | `target/site/apidocs/index.html`               |
+| Domain JAR        | `target/pathfinder-backend-0.1.0-SNAPSHOT.jar` |
 
-The JAR currently contains domain logic; a web server and application entry point
-have not been added. Coverage describes executed code, not proof of correctness.
+Generated files are ignored by Git. The JAR contains domain logic only; there is
+no web server or application entry point yet.
 
-## Confirmed search rules (not yet implemented)
+### Selecting JDK 26
 
-Generated and user-created maps may have no route to the destination. This is an
-expected outcome, with a message explaining that the destination cannot be
-reached on that map.
+In an IDE, open `backend/pom.xml` as a Maven project and select JDK 26 for both
+the project SDK and the Maven runner. If a terminal still uses an older JDK,
+point the current PowerShell session at JDK 26:
 
-Reject a search if either endpoint is blocked, with a message asking the user to
-choose traversable cells. If both endpoints are the same traversable cell,
-return immediate success with zero moves and zero cost. Validate endpoints before
-checking whether they are identical.
+```powershell
+$env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-26.0.2.101-hotspot'
+$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
+java -version
+```
 
-These rules belong to the search layer. Searches and result messages are not
-implemented yet.
+Replace the path with your own installation directory. This affects only the
+current terminal and does not change the system-wide Java default.
 
-## Build versions
+### Tests
 
-The backend targets JDK 26 and Maven 3.9.9. Apache's generated wrapper selects
-the Maven version, while the project-owned `pom.xml` pins dependencies and build
-plugins. This allows contributors to reproduce the same build.
+Each package has its own tests under `src/test/java/pathfinder/`:
 
-| Component | Version |
-| --- | --- |
-| Verified local JDK | Eclipse Temurin 26.0.2.1 |
-| Maven | 3.9.9 |
-| Maven Wrapper | 3.3.4, generated from Apache's plugin |
-| JUnit Jupiter | 6.1.3 |
-| JaCoCo | 0.8.16 |
+- `grid/`: coordinates, neighbors, walls, terrain limits, equality, and input
+  validation.
+- `generation/`: reproducibility from a seed, extreme probabilities, and input
+  validation.
+- `search/`: the shared search rules, run against every algorithm, plus BFS,
+  DFS, frontier, and result tests. `SearchFixtures` builds small test maps from
+  text rows such as `"..#.."`.
 
-The grid has no third-party runtime dependencies. JUnit is used only in tests.
-Maven Enforcer checks the Java and Maven versions, Compiler compiles the source,
-Surefire runs JUnit tests, JaCoCo records coverage, and Javadoc generates API
-documentation. Packaging produces the domain JAR. `verify.ps1` is a shortcut to
-this Maven workflow, with no separate test or compilation logic.
+A passing test suite and a coverage report show which code ran and what was
+checked; they are not a proof of correctness.
 
-Maven 3.9.9 emits JDK 26 warnings from its bundled Jansi, Guava, and Sisu
-libraries. These occurred during a successful build; they are separate from Java
-compiler and JavaDoc warnings, which fail this project's verification. The build
-retains its pinned Maven version without suppressing these messages.
+### Versions
 
-Reference documentation: [Maven Wrapper](https://maven.apache.org/tools/wrapper/),
+| Component     | Version                                   |
+| ------------- | ----------------------------------------- |
+| JDK           | 26 (verified on Eclipse Temurin 26.0.2.1) |
+| Maven         | 3.9.9                                     |
+| Maven Wrapper | 3.3.4                                     |
+| JUnit Jupiter | 6.1.3                                     |
+| JaCoCo        | 0.8.16                                    |
+
+`pom.xml` pins the version of every dependency and build plugin so that all
+contributors run the same build. JUnit is the only dependency and is used only
+in tests. The build uses Maven Enforcer (Java and Maven version checks),
+Compiler, Surefire (test runner), JaCoCo (coverage), and Javadoc.
+
+Maven 3.9.9 prints warnings from its own bundled libraries when it runs on JDK
+26. They do not come from this project's code and do not fail the build.
+
+References: [Maven Wrapper](https://maven.apache.org/tools/wrapper/),
 [JUnit](https://docs.junit.org/6.1.3/overview.html), and
 [JaCoCo releases](https://www.jacoco.org/jacoco/trunk/doc/changes.html).
-
-## AI Assistance Log
-
-OpenAI Codex assisted with the grid design discussion and generated the initial
-`Grid`, `Position`, dependency-free tests, verification script, and accompanying
-documentation. It also recorded confirmed behavior separately from proposals,
-generated the Apache Maven wrapper, configured the Maven build, and migrated the
-checks to JUnit in separate grid and position test files.
-Further assistance added configurable terrain limits, the hard cap of `100`,
-value equality, matching hashes, and focused contract tests.
-
-Verification performed by Codex: the initial dependency-free checks passed on
-JDK 25. The Maven build subsequently passed on Eclipse Temurin 26.0.2.1 with
-Maven 3.9.9: the JUnit suite passed, coverage was generated, and strict JavaDoc
-checks passed. This does not establish algorithm correctness or web integration.
-Team review and each student's independent explanation remain to be completed.
-Extend this log as further assistance or verification occurs.
