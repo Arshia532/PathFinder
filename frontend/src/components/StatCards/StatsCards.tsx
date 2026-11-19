@@ -1,32 +1,40 @@
-import { placeholderStats } from "../../data/placeholder";
 import styles from "./StatsCards.module.css";
 import { StatCard } from "./StatCard";
 
-export function StatsCards() {
+type StatsCardsProps = {
+    visited: number
+    frontier: number
+    pathLength: number | null
+    openCells: number
+}
+
+export function StatsCards({ visited, frontier, pathLength, openCells }: StatsCardsProps) {
+    const coverage = openCells > 0 ? Math.round((visited / openCells) * 100) : 0
+
     return (
         <section className={styles.row} aria-label="Run statistics">
             <StatCard
                 label="Nodes visited"
-                value={placeholderStats.visited}
+                value={String(visited)}
                 note="Total nodes visited"
                 tone="visited"
             />
             <StatCard
                 label="Path found"
-                value={placeholderStats.pathLength}
+                value={pathLength === null ? '-' : String(pathLength)}
                 note="Shown when the search ends"
                 tone="path"
             />
             <StatCard
                 label="Frontier nodes"
-                value={placeholderStats.frontier}
+                value={String(frontier)}
                 note="Waiting to be explored"
                 tone="frontier"
             />
             <StatCard
                 label="Coverage"
-                value={placeholderStats.coverage}
-                note={`${placeholderStats.visited} of ${placeholderStats.openCells} open cells explored`}
+                value={`${coverage}%`}
+                note={`${visited} of ${openCells} open cells explored`}
                 tone="coverage"
             />
         </section>

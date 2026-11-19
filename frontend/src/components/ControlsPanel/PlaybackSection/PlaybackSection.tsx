@@ -1,4 +1,3 @@
-import { placeholderResult, placeholderStep } from '../../../data/placeholder'
 import { ChevronLeftIcon } from '../../icons/ChevronLeftIcon'
 import { ChevronRightIcon } from '../../icons/ChevronRightIcon'
 import { PlayIcon } from '../../icons/PlayIcon'
@@ -8,8 +7,14 @@ import { IconButton } from '../../ui/IconButton'
 import { SectionTitle } from "../../ui/SectionTitle";
 import { MessageBox } from './MessageBox'
 import styles from './PlaybackSection.module.css'
+import type { ResultMessage, StepInfo } from '../../../state/searchView'
 
-export function PlaybackSection() {
+type PlaybackSectionProps = {
+    step: StepInfo
+    result: ResultMessage
+}
+
+export function PlaybackSection({ step, result }: PlaybackSectionProps) {
     return (
         <section className={styles.section} aria-labelledby="playback-title">
             <SectionTitle id="playback-title" dotColor="var(--color-dot-playback)">
@@ -36,18 +41,18 @@ export function PlaybackSection() {
 
             <MessageBox tone="step">
                 <span>
-                    {placeholderStep.verb}{' '}
+                    {step.verb}{' '}
                     <strong className={styles.coords}>
-                        ({placeholderStep.x}, {placeholderStep.y})
+                        ({step.cell.column}, {step.cell.row})
                     </strong>
                 </span>
                 <span className={styles.counter}>
-                    step {placeholderStep.current} / {placeholderStep.total}
+                    step {step.index} / {step.total}
                 </span>
             </MessageBox>
 
-            <MessageBox tone={placeholderResult.tone} live>
-                {placeholderResult.text}
+            <MessageBox tone={result.tone} live>
+                {result.text}
             </MessageBox>
         </section>
     )

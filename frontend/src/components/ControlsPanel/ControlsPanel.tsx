@@ -5,6 +5,8 @@ import { TerrainSection } from './TerrainSection/TerrainSection';
 import { AlgorithmSection } from './AlgorithmSection/AlgorithmSection';
 import { PlaybackSection } from './PlaybackSection/PlaybackSection';
 import type { AlgorithmId } from '../../api/types';
+import type { Tool } from '../../state/appState';
+import type { ResultMessage, StepInfo } from '../../state/searchView';
 
 import { useState } from 'react';
 
@@ -13,9 +15,14 @@ type ControlsPanelProps = {
     bidirectional: boolean
     onAlgorithmChange: (algorithm: AlgorithmId) => void
     onBidirectionalChange: (bidirectional: boolean) => void
+    tool: Tool
+    onToolChange: (tool: Tool) => void
+    onResetMap: () => void
+    step: StepInfo
+    result: ResultMessage
 }
 
-export function ControlsPanel ({ algorithm, bidirectional, onAlgorithmChange, onBidirectionalChange }: ControlsPanelProps) {
+export function ControlsPanel ({ algorithm, bidirectional, onAlgorithmChange, onBidirectionalChange, tool, onToolChange, onResetMap, step, result  }: ControlsPanelProps) {
     const [activeTab, setActiveTab] = useState('map');
 
     return (
@@ -25,7 +32,7 @@ export function ControlsPanel ({ algorithm, bidirectional, onAlgorithmChange, on
             </header>
 
             <ControlsTabs selected={activeTab} onSelect={setActiveTab} />
-            <MapSection hidden={activeTab !== 'map'} />
+            <MapSection hidden={activeTab !== 'map'} tool={tool} onToolChange={onToolChange} onResetMap={onResetMap} />
             <TerrainSection hidden={activeTab !== 'terrain'} />
             <AlgorithmSection 
                 algorithm = {algorithm}
@@ -33,7 +40,7 @@ export function ControlsPanel ({ algorithm, bidirectional, onAlgorithmChange, on
                 onAlgorithmChange = {onAlgorithmChange}
                 onBidirectionalChange = {onBidirectionalChange}
             />
-            <PlaybackSection />
+            <PlaybackSection step={step} result={result} />
         </aside>
     );
 }

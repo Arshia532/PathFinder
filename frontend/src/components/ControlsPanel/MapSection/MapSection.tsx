@@ -1,4 +1,5 @@
-import { GRID_COLS, GRID_ROWS, placeholderSeed, placeholderTool } from '../../../data/placeholder';
+import { GRID_COLS, GRID_ROWS, placeholderSeed } from '../../../data/placeholder';
+import type { Tool } from '../../../state/appState';
 import { GRID_MAX_SIZE, GRID_MIN_SIZE, gridSizePresets } from '../../../data/gridPresets';
 import { Field } from '../../ui/Field';
 //import { SectionTitle } from '../../ui/SectionTitle';
@@ -12,7 +13,7 @@ import { SegmentedControl, type SegmentOption } from '../../ui/SegmentedControl'
 
 import styles from './MapSection.module.css'
 
-const toolOptions: SegmentOption[] = [
+const toolOptions: SegmentOption<Tool>[] = [
     { value: 'start', label: 'Start', keyColor: 'var(--color-cell-start)' },
     { value: 'end', label: 'End', keyColor: 'var(--color-cell-end)' },
     { value: 'wall', label: 'Wall', keyColor: 'var(--color-cell-wall)' },
@@ -21,10 +22,12 @@ const toolOptions: SegmentOption[] = [
 
 type MapSectionProps = {
     hidden?: boolean
+    tool: Tool
+    onToolChange: (tool: Tool) => void
+    onResetMap: () => void
 }
 
-export function MapSection ({ hidden }: MapSectionProps) {
-    return (
+export function MapSection ({ hidden, tool, onToolChange, onResetMap }: MapSectionProps) {    return (
         <section
         id='panel-map'
         className={styles.section}
@@ -82,14 +85,14 @@ export function MapSection ({ hidden }: MapSectionProps) {
                 </p>
             </div>
             <Field label='Customize map' labelId='tool-label'>
-                <SegmentedControl options={toolOptions} selected={placeholderTool} labelId='tool-label'/>
+                <SegmentedControl options={toolOptions} selected={tool} onSelect={onToolChange} labelId='tool-label'/>
             </Field>
             <div className={styles.actions}>
                 <Button variant="primary" className={styles.grow}>
                     <ShuffleIcon size={18} strokeWidth={1.8}/>
                     Generate Random
                 </Button>
-                <Button variant="ghost" className={styles.fill}>
+                <Button variant="ghost" className={styles.fill} onClick={onResetMap}>
                     <RotateCcwIcon size={18} strokeWidth={1.8}/>
                     Reset map
                 </Button>

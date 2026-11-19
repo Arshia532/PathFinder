@@ -5,13 +5,29 @@
   grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
   gap: var(--gap);
   width: 100%;
-  /* Stop cells growing past the max size; the grid then centres in its panel */
   max-width: calc(var(--cols) * var(--size-cell-max) + (var(--cols) - 1) * var(--gap));
   margin-inline: auto;
+  touch-action: none;  
+  user-select: none;
 }
 
 .cell {
   aspect-ratio: 1;
   background: var(--color-cell-empty);
   border-radius: var(--radius-cell);
+  cursor: pointer;
 }
+
+.start { background: var(--color-cell-start); }
+.end   { background: var(--color-cell-end); }
+.wall  { background: var(--color-cell-wall); }
+
+.visited  { background: var(--color-cell-visited); }
+.frontier { background: var(--color-cell-frontier); }
+.current  { background: var(--color-cell-current); }
+.path     { background: var(--color-cell-path); }
+
+.stale .visited,
+.stale .frontier,
+.stale .current,
+.stale .path { opacity: 0.45; }
