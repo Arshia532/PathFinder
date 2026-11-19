@@ -69,3 +69,4 @@
     flex-basis: 40%;
   }
 }
+.segment:disabled { opacity: 0.55; cursor: default; }

@@ -1,16 +1,10 @@
-import type { ReactNode } from 'react'
+import type { ButtonHTMLAttributes } from 'react'
 import styles from './Button.module.css'
 
-type ButtonProps = {
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
     variant?: 'primary' | 'ghost' | 'light'
-    className?: string
-    children: ReactNode
 }
 
-export function Button ({variant = 'primary', className = '', children}: ButtonProps) {
-    return (
-        <button type='button' className={`${styles.button} ${styles[variant]} ${className}`}>
-            {children}
-        </button>
-    )
+export function Button({ variant = 'primary', className = '', type = 'button', ...props }: ButtonProps) {
+    return <button {...props} type={type} className={`${styles.button} ${styles[variant]} ${className}`} />
 }
