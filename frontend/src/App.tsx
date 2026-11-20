@@ -8,6 +8,7 @@ import { appReducer, initialState } from "./state/appState";
 import { useEffect, useReducer } from 'react';
 import { useSearch } from './hooks/useSearch';
 import { buildFrame, resultMessage } from './state/searchView';
+import { usePlayback } from './hooks/usePlayback';
 
 export function App() {
   const [state, dispatch] = useReducer(appReducer, initialState);
@@ -22,12 +23,12 @@ export function App() {
     }
     
   }, [])
-  
-  
   const search = useSearch(state.map, state.algorithm, state.bidirectional, state.painting)
 
+  const playback = usePlayback(search.result)
+
   const frame = search.result && search.resultRequest
-    ? buildFrame(search.resultRequest, search.result, search.result.steps.length)
+    ? buildFrame(search.resultRequest, search.result, playback.index)
     : null
   const openCells = state.map.width * state.map.height - state.map.walls.length
 
@@ -42,6 +43,8 @@ export function App() {
             stale={search.pending}
             onPaintStart={(cell) => dispatch({ type: 'paintStart', cell })}
             onPaintMove={(cell) => dispatch({ type: 'paintMove', cell })}
+            pathOrder={frame?.pathOrder ?? null}
+            animatePath={playback.celebrate && search.result?.found === true}
           />
           <StatsCards
             visited={frame?.visited ?? 0}
@@ -66,6 +69,7 @@ export function App() {
             onResetMap = {() => dispatch({ type: 'resetMap' })}
             step = {frame?.step ?? { verb: 'Start at', cell: state.map.start, index: 0, total: 0 }}
             result = {resultMessage(search)}
+            playback = {playback}
           />
           <AlgorithmCard
             algorithm={state.algorithm}

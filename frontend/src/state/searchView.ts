@@ -16,6 +16,7 @@ export type Frame = {
     frontier: number
     pathLength: number | null // only on the finished frame, and only if found
     step: StepInfo
+    pathOrder: Map<string, number>
 }
 
 export type ResultMessage = {
@@ -30,8 +31,8 @@ export function buildFrame(request: SearchRequest, response: SearchResponse, ste
     const shown = response.steps.slice(0, stepCount)
     const finished = shown.length === response.steps.length
     const marks = new Map<string, CellMark>()
+    const pathOrder = new Map<string, number>()
 
-    // Before step 0 the frontier holds the start (and the end, for bidirectional)
     marks.set(cellKey(request.start), 'frontier')
     if (request.bidirectional) marks.set(cellKey(request.end), 'frontier')
 
@@ -45,7 +46,10 @@ export function buildFrame(request: SearchRequest, response: SearchResponse, ste
 
     const last = shown.at(-1)
     if (finished) {
-        for (const cell of response.path) marks.set(cellKey(cell), 'path')
+        response.path.forEach((cell, i) => {
+            marks.set(cellKey(cell), 'path')
+            pathOrder.set(cellKey(cell), i)
+        })
     } else if (last) {
         marks.set(cellKey(last.expanded), 'current')
     }
@@ -58,6 +62,7 @@ export function buildFrame(request: SearchRequest, response: SearchResponse, ste
         step: last
             ? { verb: 'Expanded', cell: last.expanded, index: shown.length, total: response.steps.length }
             : { verb: 'Start at', cell: request.start, index: 0, total: response.steps.length },
+        pathOrder
     }
 }
 

@@ -7,6 +7,7 @@ import { PlaybackSection } from './PlaybackSection/PlaybackSection';
 import type { AlgorithmId } from '../../api/types';
 import type { Tool } from '../../state/appState';
 import type { ResultMessage, StepInfo } from '../../state/searchView';
+import type { Playback } from '../../hooks/usePlayback';
 
 import { useState } from 'react';
 
@@ -20,9 +21,10 @@ type ControlsPanelProps = {
     onResetMap: () => void
     step: StepInfo
     result: ResultMessage
+    playback: Playback
 }
 
-export function ControlsPanel ({ algorithm, bidirectional, onAlgorithmChange, onBidirectionalChange, tool, onToolChange, onResetMap, step, result  }: ControlsPanelProps) {
+export function ControlsPanel ({ algorithm, bidirectional, onAlgorithmChange, onBidirectionalChange, tool, onToolChange, onResetMap, step, result, playback  }: ControlsPanelProps) {
     const [activeTab, setActiveTab] = useState('map');
 
     return (
@@ -40,7 +42,7 @@ export function ControlsPanel ({ algorithm, bidirectional, onAlgorithmChange, on
                 onAlgorithmChange = {onAlgorithmChange}
                 onBidirectionalChange = {onBidirectionalChange}
             />
-            <PlaybackSection step={step} result={result} />
+            <PlaybackSection step={step} result={result} playback={playback} />
         </aside>
     );
 }

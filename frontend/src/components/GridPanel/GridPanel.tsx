@@ -11,14 +11,24 @@ type GridPanelProps = {
     onPaintMove: (cell: Cell) => void
     marks: Map<string, CellMark> | null
     stale: boolean
+    pathOrder: Map<string, number> | null
+    animatePath: boolean
 }
 
-export function GridPanel ({ map, onPaintStart, onPaintMove, marks, stale }: GridPanelProps) {
+export function GridPanel ({ map, onPaintStart, onPaintMove, marks, stale, pathOrder, animatePath }: GridPanelProps) {
     const sizeVars = {'--cols': map.width} as CSSProperties;
 
     return (
         <section className={styles.panel} style={sizeVars} aria-label="Search grid">
-                        <Grid map={map} marks={marks} stale={stale} onPaintStart={onPaintStart} onPaintMove={onPaintMove} />
+            <Grid 
+                map={map}
+                marks={marks}
+                pathOrder={pathOrder}
+                animatePath={animatePath}
+                stale={stale}
+                onPaintStart={onPaintStart}
+                onPaintMove={onPaintMove}
+            />
             <div className={styles.footer}>
                 <Legend />
                 <p className={styles.hint}>Click or drag on the grid to use the selected tool</p>

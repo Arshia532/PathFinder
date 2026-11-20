@@ -5,11 +5,19 @@ type IconButtonProps = {
   label: string // spoken name, since the button has no visible text
   variant?: 'default' | 'primary'
   children: ReactNode
+  onClick?: () => void
+  disabled?: boolean
 }
 
-export function IconButton({ label, variant = 'default', children }: IconButtonProps) {
+export function IconButton({ label, variant = 'default', onClick, disabled = false, children }: IconButtonProps) {
   return (
-    <button type="button" className={`${styles.button} ${styles[variant]}`} aria-label={label}>
+    <button
+      type="button"
+      className={`${styles.button} ${styles[variant]}`}
+      aria-label={label}
+      onClick={onClick}
+      disabled={disabled}
+    >
       {children}
     </button>
   )
