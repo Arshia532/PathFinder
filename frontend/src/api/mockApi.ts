@@ -106,3 +106,7 @@ export function mockImportMap(text: string): Promise<GridMap> {
         return Promise.reject(new Error("This file isn't valid JSON."))
     }
 }
+
+export function mockRandomMap(): Promise<GridMap> {
+    return Promise.reject(new Error('Random maps need the backend (set VITE_API_MODE=real).'))
+}

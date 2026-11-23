@@ -10,6 +10,7 @@ export type AppState = {
     bidirectional: boolean
     painting: boolean
     fileError: string | null
+    seed: string
 }
 
 export type AppAction = 
@@ -23,6 +24,7 @@ export type AppAction =
 | {type: 'resizeMap'; width: number; height: number}
 | {type: 'loadMap'; map: GridMap}
 | {type: 'fileFailed'; message: string}
+| {type: 'setSeed'; seed: string}
 
 
 export function createMap(width: number, height: number): GridMap {
@@ -39,10 +41,11 @@ export function createMap(width: number, height: number): GridMap {
 export const initialState: AppState = {
     map: createMap(30, 21),
     tool: 'wall',
-    algorithm: 'astar',
+    algorithm: 'bfs',
     bidirectional: false,
     painting: false,
     fileError: null,
+    seed: '',
 }
 
 export function appReducer(state: AppState, action: AppAction): AppState {
@@ -76,6 +79,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             return {...state, map: action.map, fileError: null}
         case 'fileFailed':
             return {...state, fileError: action.message}
+        case 'setSeed':
+            return {...state, seed: action.seed}
+
     }   
 }
 

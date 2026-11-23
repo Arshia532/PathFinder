@@ -25,9 +25,14 @@ type ControlsPanelProps = {
     width: number
     height: number
     onResize: (width: number, height: number) => void
+    seed: string
+    onSeedChange: (seed: string) => void
+    onGenerateRandom: () => void
+    onGenerateFromSeed: () => void
 }
 
-export function ControlsPanel ({ algorithm, bidirectional, onAlgorithmChange, onBidirectionalChange, tool, onToolChange, onResetMap, step, result, playback, width, height, onResize  }: ControlsPanelProps) {
+export function ControlsPanel ({ algorithm, bidirectional, onAlgorithmChange, onBidirectionalChange, tool, onToolChange, onResetMap,
+            step, result, playback, width, height, onResize, seed, onSeedChange, onGenerateRandom, onGenerateFromSeed  }: ControlsPanelProps) {
     const [activeTab, setActiveTab] = useState('map');
 
     return (
@@ -45,6 +50,10 @@ export function ControlsPanel ({ algorithm, bidirectional, onAlgorithmChange, on
                 width={width}
                 height={height}
                 onResize={onResize}
+                seed={seed}
+                onSeedChange={onSeedChange}
+                onGenerateRandom={onGenerateRandom}
+                onGenerateFromSeed={onGenerateFromSeed}
             />
             <TerrainSection hidden={activeTab !== 'terrain'} />
             <AlgorithmSection 

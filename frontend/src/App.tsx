@@ -54,6 +54,24 @@ export function App() {
       .catch((error: unknown) => dispatch({ type: 'fileFailed', message: errorMessage(error) }))
   }
 
+    const generateMap = (seedText: string) => {
+    const seed = Number(seedText)
+    if (seedText.trim() === '' || !Number.isSafeInteger(seed)) {
+      dispatch({ type: 'fileFailed', message: 'The seed must be a whole number.' })
+      return
+    }
+    const { width, height } = state.map
+    api.randomMap({ width, height, seed })
+      .then((map) => dispatch({ type: 'loadMap', map }))
+      .catch((error: unknown) => dispatch({ type: 'fileFailed', message: errorMessage(error) }))
+  }
+
+  const generateNewMap = () => {
+    const seed = String(Math.floor(Math.random() * 100_000))
+    dispatch({ type: 'setSeed', seed })
+    generateMap(seed)
+  }
+
   return (
     <div className={styles.page}>
       <div className={styles.layout}>
@@ -95,6 +113,10 @@ export function App() {
             width = {state.map.width}
             height = {state.map.height}
             onResize = {(width, height) => dispatch({ type: 'resizeMap', width, height })}
+            seed = {state.seed}
+            onSeedChange = {(seed) => dispatch({ type: 'setSeed', seed })}
+            onGenerateRandom = {generateNewMap}
+            onGenerateFromSeed = {() => generateMap(state.seed)}
           />
           <AlgorithmCard
             algorithm={state.algorithm}

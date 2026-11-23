@@ -1,4 +1,4 @@
-import type { ApiError, GridMap, SearchRequest, SearchResponse } from './types'
+import type { ApiError, GridMap, RandomMapRequest, SearchRequest, SearchResponse } from './types'
 
 async function send(path: string, body: string, signal?: AbortSignal): Promise<Response> {
     let response: Response
@@ -41,5 +41,10 @@ export async function exportMapRequest(map: GridMap): Promise<string> {
 
 export async function importMapRequest(text: string): Promise<GridMap> {
     const response = await send('/api/maps/import', text)
+    return (await response.json()) as GridMap
+}
+
+export async function randomMapRequest(request: RandomMapRequest): Promise<GridMap> {
+    const response = await send('/api/maps/random', JSON.stringify(request))
     return (await response.json()) as GridMap
 }

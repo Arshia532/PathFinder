@@ -1,13 +1,12 @@
 import type { Tool } from '../../../state/appState';
 import { GRID_MAX_SIZE, GRID_MIN_SIZE, gridSizePresets } from '../../../data/gridPresets';
 import { Field } from '../../ui/Field';
-//import { SectionTitle } from '../../ui/SectionTitle';
+//import { SectionTitle } from '../..ui/SectionTitle';
 import { ChevronDownIcon } from '../../icons/ChevronDownIcon';
 import { Stepper } from '../../ui/Stepper';
 import { Button } from '../../ui/Button';
 import { RotateCcwIcon } from '../../icons/RotateCcwIcon';
 import { ShuffleIcon } from '../../icons/ShuffleIcon'; 
-import { placeholderSeed } from '../../../data/placeholder';
 
 import { SegmentedControl, type SegmentOption } from '../../ui/SegmentedControl';
 
@@ -28,9 +27,13 @@ type MapSectionProps = {
     width: number
     height: number
     onResize: (width: number, height: number) => void
+    seed: string
+    onSeedChange: (seed: string) => void
+    onGenerateRandom: () => void
+    onGenerateFromSeed: () => void
 }
 
-export function MapSection ({ hidden, tool, onToolChange, onResetMap, width, height, onResize }: MapSectionProps) {
+export function MapSection ({ hidden, tool, onToolChange, onResetMap, width, height, onResize, seed, onSeedChange, onGenerateRandom, onGenerateFromSeed }: MapSectionProps) {
     const isPreset = gridSizePresets.some((p) => p.cols === width && p.rows === height)
     const sizeValue = isPreset ? `${width}x${height}` : 'custom'
 
@@ -44,7 +47,18 @@ export function MapSection ({ hidden, tool, onToolChange, onResetMap, width, hei
         >
             <div className={styles.fields}>
                 <Field label="Seed" htmlFor="seed">
-                    <input className={`${styles.input} ${styles.mono}`}  id='seed' type='text' inputMode='numeric' defaultValue={placeholderSeed} />
+                    <input
+                        className={`${styles.input} ${styles.mono}`}
+                        id='seed'
+                        type='text'
+                        inputMode='numeric'
+                        placeholder='Random'
+                        value={seed}
+                        onChange={(e) => onSeedChange(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') onGenerateFromSeed()
+                        }}
+                    />
                 </Field>
                 
                 <Field label='Grid size' htmlFor='grid-size'>
@@ -105,7 +119,7 @@ export function MapSection ({ hidden, tool, onToolChange, onResetMap, width, hei
                 <SegmentedControl options={toolOptions} selected={tool} onSelect={onToolChange} labelId='tool-label'/>
             </Field>
             <div className={styles.actions}>
-                <Button variant="primary" className={styles.grow}>
+                <Button variant="primary" className={styles.grow} onClick={onGenerateRandom}>
                     <ShuffleIcon size={18} strokeWidth={1.8}/>
                     Generate Random
                 </Button>

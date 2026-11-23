@@ -41,16 +41,28 @@ Then open http://localhost:5173.
 ```
 src/
 ├── main.tsx              Entry point: global styles + <App />
-├── App.tsx               Page layout (two columns)
+├── App.tsx               Page layout; owns state and passes it to components
+├── api/
+│   ├── types.ts          Request/response types (mirror the Java records)
+│   ├── client.ts         fetch calls to the Spring Boot API
+│   ├── mockApi.ts        Mock search for working without the backend
+│   └── api.ts            Picks mock or real (VITE_API_MODE)
+├── state/
+│   ├── appState.ts       Reducer: map, tool, algorithm, seed, errors
+│   └── searchView.ts     Replays search steps into grid marks, stats and messages
+├── hooks/
+│   ├── useSearch.ts      Re-runs the search after edits; cancels stale requests
+│   └── usePlayback.ts    Step index, play/pause, end-of-replay animation
+├── utils/
+│   └── download.ts       Browser file download
 ├── styles/
 │   ├── tokens.css        Design tokens: colours, fonts, radii, shadows
 │   └── global.css        Reset and page-wide defaults
 ├── data/
 │   ├── algorithms.ts     Algorithm names and descriptions
-│   ├── gridPresets.ts    Grid-size presets and limits
-│   └── placeholder.ts    Temporary static data (replaced by live state)
+│   └── gridPresets.ts    Grid-size presets and limits
 └── components/
-    ├── Header/           Title and logo
+    ├── Header/           Title, logo, Load/Save map
     ├── Logo/             2×2 brand mark
     ├── GridPanel/        Grid, legend and frame
     ├── StatCards/        Run statistics
@@ -73,11 +85,20 @@ src/
 - **Fonts:** Bricolage Grotesque (display), Instrument Sans (UI) and
   JetBrains Mono (seeds and coordinates), loaded from Google Fonts.
 
+## Running against the backend
+
+By default the app uses the mock API. To use the Spring Boot backend, start it on
+port 8080, create `frontend/.env.local` with `VITE_API_MODE=real`, and restart
+`npm run dev`. Vite forwards `/api` requests to `localhost:8080`.
+
 ## Status
 
-- [x] Static layout matching the design, using placeholder data
-- [ ] State, event handlers and TypeScript domain types
-- [ ] Connect to the Spring Boot API and replay search steps
+- [x] Static layout matching the design
+- [x] State, event handlers and TypeScript domain types
+- [x] Search playback and path animation
+- [x] Connected to Spring Boot: search and random maps
+- [ ] Save and load through Spring Boot
+- [ ] A*, Dijkstra and bidirectional search (backend)
 
 ## Toolchain notes
 
