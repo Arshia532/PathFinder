@@ -9,7 +9,7 @@ import { useEffect, useReducer } from 'react';
 import { useSearch } from './hooks/useSearch';
 import { buildFrame, resultMessage } from './state/searchView';
 import { usePlayback } from './hooks/usePlayback';
-import { mockExportMap, mockImportMap } from './api/mockApi';
+import { api } from './api/api'
 import { downloadText } from './utils/download';
 
 export function App() {
@@ -38,7 +38,7 @@ export function App() {
 
   const saveMap = () => {
     const { width, height } = state.map
-    mockExportMap(state.map)
+    api.exportMap(state.map)
       .then((json) => downloadText(json, `pathfinder-map-${width}x${height}.json`))
       .catch((error: unknown) => dispatch({ type: 'fileFailed', message: errorMessage(error) }))
   }
@@ -49,7 +49,7 @@ export function App() {
       return
     }
     file.text()
-      .then(mockImportMap)
+      .then(api.importMap)
       .then((map) => dispatch({ type: 'loadMap', map }))
       .catch((error: unknown) => dispatch({ type: 'fileFailed', message: errorMessage(error) }))
   }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { mockSearch } from '../api/mockApi'
+import { api } from '../api/api'
 import type { AlgorithmId, GridMap, SearchRequest, SearchResponse } from '../api/types'
 
 export type SearchState = {
@@ -33,7 +33,7 @@ export function useSearch(
         if (paused || upToDate) return
 
         const controller = new AbortController()
-        mockSearch(request, controller.signal).then(
+            api.search(request, controller.signal).then(
             (result) => {
                 if (!controller.signal.aborted) setSettled({ request, result, error: null })
             },
