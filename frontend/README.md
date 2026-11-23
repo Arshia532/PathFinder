@@ -87,9 +87,9 @@ src/
 
 ## Running against the backend
 
-By default the app uses the mock API. To use the Spring Boot backend, start it on
-port 8080, create `frontend/.env.local` with `VITE_API_MODE=real`, and restart
-`npm run dev`. Vite forwards `/api` requests to `localhost:8080`.
+`npm run dev` uses the Spring Boot backend: start it first on port 8080 (see
+`docs/how-to-run.md`). Vite forwards `/api` requests to `localhost:8080`.
+To work without the backend, run `npm run dev:mock` instead.
 
 ## Status
 
@@ -97,7 +97,7 @@ port 8080, create `frontend/.env.local` with `VITE_API_MODE=real`, and restart
 - [x] State, event handlers and TypeScript domain types
 - [x] Search playback and path animation
 - [x] Connected to Spring Boot: search and random maps
-- [ ] Save and load through Spring Boot
+- [x] Save and load through Spring Boot
 - [ ] A*, Dijkstra and bidirectional search (backend)
 
 ## Toolchain notes

@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
 
 /** HTTP entry point for map endpoints under {@code /api/maps}. */
 @RestController
@@ -24,5 +25,27 @@ final class MapController {
     @PostMapping("/random")
     GridMap random(@RequestBody RandomMapRequest request) {
         return service.random(request);
+    }
+
+    /**
+     * Returns a map as the contents of a map file.
+     *
+     * @param map the map to save
+     * @return pretty-printed JSON
+     */
+    @PostMapping(value = "/export", produces = MediaType.APPLICATION_JSON_VALUE)
+    String export(@RequestBody GridMap map) {
+        return service.export(map);
+    }
+
+    /**
+     * Reads a map file and returns the checked map.
+     *
+     * @param text the file's contents, unparsed
+     * @return the map as JSON
+     */
+    @PostMapping("/import")
+    GridMap importMap(@RequestBody String text) {
+        return service.importMap(text);
     }
 }

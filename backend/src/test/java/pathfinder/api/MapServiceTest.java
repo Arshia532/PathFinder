@@ -3,13 +3,14 @@ package pathfinder.api;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.junit.jupiter.api.Test;
 
 import pathfinder.grid.Position;
 
 class MapServiceTest {
-    private final MapService service = new MapService();
+    private final MapService service = new MapService(JsonMapper.builder().build());
 
     @Test
     void sameSeedAndSizeGiveTheSameMap() {
@@ -29,5 +30,12 @@ class MapServiceTest {
                 assertTrue(wall.row() < 21 && wall.column() < 30, "outside: " + wall);
             }
         }
+    }
+
+    @Test
+    void exportThenImportGivesTheSameMap() {
+        GridMap map = service.random(new RandomMapRequest(30, 21, 48213L));
+
+        assertEquals(map, service.importMap(service.export(map)));
     }
 }

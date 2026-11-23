@@ -16,8 +16,6 @@ import pathfinder.search.SearchResult;
  */
 @Service
 final class SearchService {
-    static final int MIN_SIZE = 10;
-    static final int MAX_SIZE = 50;
 
     /**
      * Runs one search.
@@ -28,21 +26,19 @@ final class SearchService {
      *                                 not available yet
      */
     SearchResponse search(SearchRequest request) {
-        validate(request);
-        Grid grid = toGrid(request);
-        if (grid.isBlocked(grid.indexOf(request.start()))) {
-            throw new InvalidRequestException(SearchAlgorithm.START_BLOCKED_MESSAGE);
+        if (request.algorithm() == null) {
+            throw new InvalidRequestException("Choose an algorithm.");
         }
-        if (grid.isBlocked(grid.indexOf(request.end()))) {
-            throw new InvalidRequestException(SearchAlgorithm.DESTINATION_BLOCKED_MESSAGE);
-        }
+        GridMap map = MapRules.check(new GridMap(
+                request.width(), request.height(), request.start(), request.end(), request.walls()));
         if (request.bidirectional()) {
             throw new InvalidRequestException("Bi-directional search is not available yet.");
         }
 
+        Grid grid = toGrid(map);
         StepRecorder recorder = new StepRecorder(grid, SearchSide.FORWARD);
         SearchResult result = algorithmFor(request.algorithm())
-                .search(grid, request.start(), request.end(), recorder);
+                .search(grid, map.start(), map.end(), recorder);
 
         boolean found = result.found();
         SearchStats stats = new SearchStats(
@@ -61,42 +57,14 @@ final class SearchService {
         };
     }
 
-    private static void validate(SearchRequest request) {
-        check(request.algorithm() != null, "Choose an algorithm.");
-        check(inRange(request.width()) && inRange(request.height()),
-                "Width and height must be from " + MIN_SIZE + " to " + MAX_SIZE + ".");
-        check(request.start() != null && request.end() != null, "Start and end are required.");
-        checkInside(request.start(), "Start", request);
-        checkInside(request.end(), "End", request);
-        for (Position wall : request.walls()) {
-            checkInside(wall, "Wall", request);
-        }
-    }
-
-    private static Grid toGrid(SearchRequest request) {
-        int cellCount = request.width() * request.height();
+    private static Grid toGrid(GridMap map) {
+        int cellCount = map.width() * map.height();
         boolean[] blocked = new boolean[cellCount];
-        for (Position wall : request.walls()) {
-            blocked[wall.row() * request.width() + wall.column()] = true;
+        for (Position wall : map.walls()) {
+            blocked[wall.row() * map.width() + wall.column()] = true;
         }
         int[] costs = new int[cellCount];
         Arrays.fill(costs, 1);
-        return new Grid(request.height(), request.width(), blocked, costs);
-    }
-
-    private static void checkInside(Position cell, String name, SearchRequest request) {
-        check(cell.row() < request.height() && cell.column() < request.width(),
-                name + " (" + cell.column() + ", " + cell.row() + ") is outside the "
-                        + request.width() + " × " + request.height() + " grid.");
-    }
-
-    private static boolean inRange(int size) {
-        return size >= MIN_SIZE && size <= MAX_SIZE;
-    }
-
-    private static void check(boolean condition, String message) {
-        if (!condition) {
-            throw new InvalidRequestException(message);
-        }
+        return new Grid(map.height(), map.width(), blocked, costs);
     }
 }

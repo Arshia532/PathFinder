@@ -3,7 +3,8 @@ import { mockExportMap, mockImportMap, mockRandomMap, mockSearch } from './mockA
 
 
 
-const useMock = import.meta.env.VITE_API_MODE !== 'real'
+// Default is the Spring Boot backend. `npm run dev:mock` uses the mock instead.
+const useMock = import.meta.env.VITE_API_MODE === 'mock'
 
 console.info(`PathFinder API: ${useMock ? 'mock' : 'Spring Boot backend'}`)
 
