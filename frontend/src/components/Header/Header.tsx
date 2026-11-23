@@ -2,7 +2,12 @@ import styles from './Header.module.css';
 import {Logo} from '../Logo/Logo'
 import { FileActions } from './FileActions';
 
-export function Header () {
+type HeaderProps = {
+    onSave: () => void
+    onLoadFile: (file: File) => void
+}
+
+export function Header ({ onSave, onLoadFile }: HeaderProps) {
     return (
         <header className={styles.header}>
             <div className={styles.brand}>
@@ -12,7 +17,7 @@ export function Header () {
                     <span className={styles.titleLine}>Visualizer</span>
                 </h1>
             </div>
-            <FileActions />
+            <FileActions onSave={onSave} onLoadFile={onLoadFile} />
         </header>
     );
 }

@@ -22,9 +22,12 @@ type ControlsPanelProps = {
     step: StepInfo
     result: ResultMessage
     playback: Playback
+    width: number
+    height: number
+    onResize: (width: number, height: number) => void
 }
 
-export function ControlsPanel ({ algorithm, bidirectional, onAlgorithmChange, onBidirectionalChange, tool, onToolChange, onResetMap, step, result, playback  }: ControlsPanelProps) {
+export function ControlsPanel ({ algorithm, bidirectional, onAlgorithmChange, onBidirectionalChange, tool, onToolChange, onResetMap, step, result, playback, width, height, onResize  }: ControlsPanelProps) {
     const [activeTab, setActiveTab] = useState('map');
 
     return (
@@ -34,7 +37,15 @@ export function ControlsPanel ({ algorithm, bidirectional, onAlgorithmChange, on
             </header>
 
             <ControlsTabs selected={activeTab} onSelect={setActiveTab} />
-            <MapSection hidden={activeTab !== 'map'} tool={tool} onToolChange={onToolChange} onResetMap={onResetMap} />
+            <MapSection
+                hidden={activeTab !== 'map'}
+                tool={tool}
+                onToolChange={onToolChange}
+                onResetMap={onResetMap}
+                width={width}
+                height={height}
+                onResize={onResize}
+            />
             <TerrainSection hidden={activeTab !== 'terrain'} />
             <AlgorithmSection 
                 algorithm = {algorithm}

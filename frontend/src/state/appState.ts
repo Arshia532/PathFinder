@@ -1,4 +1,5 @@
 import type { AlgorithmId, Cell, GridMap } from "../api/types";
+import { GRID_MAX_SIZE, GRID_MIN_SIZE } from "../data/gridPresets";
 
 export type Tool = 'start' | 'end' | 'wall' | 'erase'
 
@@ -8,6 +9,7 @@ export type AppState = {
     algorithm: AlgorithmId
     bidirectional: boolean
     painting: boolean
+    fileError: string | null
 }
 
 export type AppAction = 
@@ -18,6 +20,10 @@ export type AppAction =
 | {type: 'paintMove'; cell: Cell}
 | {type: 'paintEnd'}
 | {type: 'resetMap'}
+| {type: 'resizeMap'; width: number; height: number}
+| {type: 'loadMap'; map: GridMap}
+| {type: 'fileFailed'; message: string}
+
 
 export function createMap(width: number, height: number): GridMap {
     return {
@@ -36,6 +42,7 @@ export const initialState: AppState = {
     algorithm: 'astar',
     bidirectional: false,
     painting: false,
+    fileError: null,
 }
 
 export function appReducer(state: AppState, action: AppAction): AppState {
@@ -47,7 +54,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case 'setBidirectional': 
             return {...state, bidirectional: action.bidirectional}
         case 'paintStart':
-            return {...state, painting: true, map: paintCell(state.map, state.tool, action.cell)}
+            return {...state, painting: true, fileError: null, map: paintCell(state.map, state.tool, action.cell)}
         case 'paintMove': {
             if (!state.painting) return state
             const movingEndpoint = state.tool === 'start' || state.tool === 'end'
@@ -58,8 +65,18 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case 'paintEnd':
             return state.painting ? {...state, painting: false} : state
         case 'resetMap':
-            return {...state, map: createMap(state.map.width, state.map.height)}
-    } 
+            return {...state, fileError: null, map: createMap(state.map.width, state.map.height)}
+        case 'resizeMap': {
+            const width = clampSize(action.width)
+            const height = clampSize(action.height)
+            if (width === state.map.width && height === state.map.height) return state
+            return {...state, fileError: null, map: resizeMap(state.map, width, height)}
+        }
+        case 'loadMap':
+            return {...state, map: action.map, fileError: null}
+        case 'fileFailed':
+            return {...state, fileError: action.message}
+    }   
 }
 
 function isWall(map: GridMap, cell: Cell) {
@@ -92,3 +109,22 @@ function paintCell(map: GridMap, tool: Tool, cell: Cell): GridMap {
     }
 }
 
+function clampSize(size: number) {
+    return Math.max(GRID_MIN_SIZE, Math.min(GRID_MAX_SIZE, Math.round(size)))
+}
+
+/** Keeps walls that still fit. Endpoints outside the new size move to the nearest edge cell. */
+function resizeMap(map: GridMap, width: number, height: number): GridMap {
+    const clamp = (cell: Cell): Cell => ({
+        row: Math.min(cell.row, height - 1),
+        column: Math.min(cell.column, width - 1),
+    })
+    const start = clamp(map.start)
+    const end = clamp(map.end)
+    if (sameCell(start, end)) return createMap(width, height)
+
+    const walls = map.walls.filter((wall) =>
+        wall.row < height && wall.column < width && !sameCell(wall, start) && !sameCell(wall, end),
+    )
+    return {width, height, start, end, walls}
+}

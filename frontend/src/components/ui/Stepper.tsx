@@ -9,9 +9,10 @@ type StepperProps = {
     labelId: string
     decreaseLabel: string
     increaseLabel: string
+    onChange: (value: number) => void
 }
 
-export function Stepper({value, min, max, labelId, decreaseLabel, increaseLabel }: StepperProps){ 
+export function Stepper({value, min, max, labelId, decreaseLabel, increaseLabel, onChange }: StepperProps){ 
     return(
         <div className={styles.stepper} role="group" aria-labelledby={labelId}>
             <button
@@ -19,6 +20,7 @@ export function Stepper({value, min, max, labelId, decreaseLabel, increaseLabel 
             className={styles.button}
             aria-label={decreaseLabel}
             disabled={value <= min}
+            onClick={() => onChange(value - 1)}
             >
                 <MinusIcon />
             </button>
@@ -32,6 +34,7 @@ export function Stepper({value, min, max, labelId, decreaseLabel, increaseLabel 
             className={styles.button}
             aria-label={increaseLabel}
             disabled={value >= max}
+            onClick={() => onChange(value + 1)}
             >
                 <PlusIcon />
             </button>

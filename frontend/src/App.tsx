@@ -9,6 +9,8 @@ import { useEffect, useReducer } from 'react';
 import { useSearch } from './hooks/useSearch';
 import { buildFrame, resultMessage } from './state/searchView';
 import { usePlayback } from './hooks/usePlayback';
+import { mockExportMap, mockImportMap } from './api/mockApi';
+import { downloadText } from './utils/download';
 
 export function App() {
   const [state, dispatch] = useReducer(appReducer, initialState);
@@ -32,11 +34,31 @@ export function App() {
     : null
   const openCells = state.map.width * state.map.height - state.map.walls.length
 
+    const errorMessage = (error: unknown) => error instanceof Error ? error.message : 'Something went wrong.'
+
+  const saveMap = () => {
+    const { width, height } = state.map
+    mockExportMap(state.map)
+      .then((json) => downloadText(json, `pathfinder-map-${width}x${height}.json`))
+      .catch((error: unknown) => dispatch({ type: 'fileFailed', message: errorMessage(error) }))
+  }
+
+  const loadMapFile = (file: File) => {
+    if (file.size > 1_000_000) {
+      dispatch({ type: 'fileFailed', message: 'That file is too large to be a map.' })
+      return
+    }
+    file.text()
+      .then(mockImportMap)
+      .then((map) => dispatch({ type: 'loadMap', map }))
+      .catch((error: unknown) => dispatch({ type: 'fileFailed', message: errorMessage(error) }))
+  }
+
   return (
     <div className={styles.page}>
       <div className={styles.layout}>
         <main className={styles.mainColumn}>
-          <Header />
+          <Header onSave={saveMap} onLoadFile={loadMapFile} />
           <GridPanel
             map={state.map}
             marks={frame?.marks ?? null}
@@ -68,8 +90,11 @@ export function App() {
             onToolChange = {(tool) => dispatch({ type: 'setTool', tool })}
             onResetMap = {() => dispatch({ type: 'resetMap' })}
             step = {frame?.step ?? { verb: 'Start at', cell: state.map.start, index: 0, total: 0 }}
-            result = {resultMessage(search)}
+            result = {state.fileError ? { tone: 'error', text: state.fileError } : resultMessage(search)}
             playback = {playback}
+            width = {state.map.width}
+            height = {state.map.height}
+            onResize = {(width, height) => dispatch({ type: 'resizeMap', width, height })}
           />
           <AlgorithmCard
             algorithm={state.algorithm}

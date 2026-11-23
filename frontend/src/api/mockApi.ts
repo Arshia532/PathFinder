@@ -1,4 +1,4 @@
-import type { Cell, SearchRequest, SearchResponse, SearchStep} from './types'
+import type { Cell, GridMap, SearchRequest, SearchResponse, SearchStep } from './types'
 
 const MOCK_DELAY_MS = 150
 
@@ -92,4 +92,17 @@ function runBfs ({width, height, start, end, walls}: SearchRequest): SearchRespo
         }
     }
     return {found: false, steps, path: [], stats: {visited: steps.length, pathLength: null, pathCost: null}}
+}
+
+export function mockExportMap(map: GridMap): Promise<string> {
+    const { width, height, start, end, walls } = map
+    return Promise.resolve(JSON.stringify({ width, height, start, end, walls }, null, 2))
+}
+
+export function mockImportMap(text: string): Promise<GridMap> {
+    try {
+        return Promise.resolve(JSON.parse(text) as GridMap)
+    } catch {
+        return Promise.reject(new Error("This file isn't valid JSON."))
+    }
 }
