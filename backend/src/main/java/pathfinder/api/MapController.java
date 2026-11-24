@@ -28,6 +28,17 @@ final class MapController {
     }
 
     /**
+     * Generates a maze.
+     *
+     * @param request the size and seed
+     * @return the maze as JSON
+     */
+    @PostMapping("/maze")
+    GridMap maze(@RequestBody RandomMapRequest request) {
+        return service.maze(request);
+    }
+
+    /**
      * Returns a map as the contents of a map file.
      *
      * @param map the map to save

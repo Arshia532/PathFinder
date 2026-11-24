@@ -39,6 +39,26 @@ class MapControllerTest {
                 .isEqualTo("Width and height must be from 10 to 50.");
     }
 
+    @Test
+    void returnsAMazeOfTheRequestedSize() {
+        MvcTestResult result = post("/api/maps/maze", "{\"width\": 30, \"height\": 21, \"seed\": 48213}");
+
+        assertThat(result).hasStatusOk();
+        assertThat(result).bodyJson().extractingPath("$.width").isEqualTo(30);
+        assertThat(result).bodyJson().extractingPath("$.height").isEqualTo(21);
+        assertThat(result).bodyJson().extractingPath("$.start.row").isEqualTo(1);
+        assertThat(result).bodyJson().extractingPath("$.end.column").isEqualTo(29);
+    }
+
+    @Test
+    void mazeSizeOutOfRangeIsRejected() {
+        MvcTestResult result = post("/api/maps/maze", "{\"width\": 30, \"height\": 9, \"seed\": 1}");
+
+        assertThat(result).hasStatus(HttpStatus.BAD_REQUEST);
+        assertThat(result).bodyJson().extractingPath("$.message")
+                .isEqualTo("Width and height must be from 10 to 50.");
+    }
+
     private MvcTestResult random(String json) {
         return mvc.post().uri("/api/maps/random")
                 .contentType(MediaType.APPLICATION_JSON)

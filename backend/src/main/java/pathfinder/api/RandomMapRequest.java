@@ -1,7 +1,7 @@
 package pathfinder.api;
 
 /**
- * The body of {@code POST /api/maps/random}.
+ * The body of {@code POST /api/maps/random} and {@code POST /api/maps/maze}.
  *
  * @param width  the number of columns
  * @param height the number of rows

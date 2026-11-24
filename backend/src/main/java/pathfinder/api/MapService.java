@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import pathfinder.generation.MazeGenerator;
 import pathfinder.generation.RandomGridGenerator;
 import pathfinder.grid.Grid;
 import pathfinder.grid.Position;
@@ -19,6 +20,7 @@ final class MapService {
     static final String NOT_A_MAP = "This file isn't a valid PathFinder map.";
 
     private final RandomGridGenerator generator = new RandomGridGenerator();
+    private final MazeGenerator mazeGenerator = new MazeGenerator();
     private final JsonMapper json;
 
     MapService(JsonMapper json) {
@@ -41,7 +43,25 @@ final class MapService {
         // Same default spots as createMap in frontend/src/state/appState.ts
         Position start = new Position(height - 6, 3);
         Position end = new Position(5, width - 4);
+        return toMap(grid, start, end);
+    }
 
+    /**
+     * Generates a maze, with start and end in opposite corners of its corridors.
+     *
+     * @param request the size and seed
+     * @return the generated maze
+     * @throws InvalidRequestException if the size is out of range
+     */
+    GridMap maze(RandomMapRequest request) {
+        MapRules.checkSize(request.width(), request.height());
+        MazeGenerator.Maze maze =
+                mazeGenerator.generate(request.height(), request.width(), request.seed());
+        return toMap(maze.grid(), maze.start(), maze.destination());
+    }
+
+    // Lists the walls, leaving out the start and end so that both stay open.
+    private static GridMap toMap(Grid grid, Position start, Position end) {
         List<Position> walls = new ArrayList<>();
         for (int index = 0; index < grid.size(); index++) {
             Position cell = grid.positionAt(index);
@@ -49,7 +69,7 @@ final class MapService {
                 walls.add(cell);
             }
         }
-        return new GridMap(width, height, start, end, walls);
+        return new GridMap(grid.columns(), grid.rows(), start, end, walls);
     }
 
     /**

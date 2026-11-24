@@ -170,5 +170,6 @@ All endpoints take and return JSON. Errors return `{ "message": "..." }` with st
 |---|---|---|
 | `POST /api/search` | Map + `algorithm` + `bidirectional` | Steps, path and stats |
 | `POST /api/maps/random` | `width`, `height`, `seed` | A generated map |
+| `POST /api/maps/maze` | `width`, `height`, `seed` | A generated maze |
 | `POST /api/maps/export` | A map | The map file contents |
 | `POST /api/maps/import` | A map file's text | The checked map |
