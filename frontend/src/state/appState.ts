@@ -27,6 +27,7 @@ export type AppAction =
 | {type: 'setSeed'; seed: string}
 
 
+// Default start and end. MapService.random in the backend uses the same spots; change both together.
 export function createMap(width: number, height: number): GridMap {
     return {
         width,
