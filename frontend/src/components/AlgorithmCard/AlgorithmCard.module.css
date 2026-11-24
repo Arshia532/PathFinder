@@ -1,0 +1,27 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 16px 18px;
+  background: var(--color-card-dark);
+  color: var(--color-ink-inverse);
+  border-radius: var(--radius-card);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.text {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.note {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-card-dark-soft);
+}
