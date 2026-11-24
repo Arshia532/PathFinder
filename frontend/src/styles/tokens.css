@@ -47,6 +47,7 @@
   --color-cell-frontier: #B9A6DA;
   --color-cell-current: #E58FAE;
   --color-cell-path: #EDA35F;
+  --color-cell-path-muted: color-mix(in srgb, var(--color-cell-path) 40%, var(--color-cell-empty));
 
   /* ── Stat cards ─────────────────────────────────────────── */
   --color-stat-visited: var(--color-cell-visited);

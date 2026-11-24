@@ -47,3 +47,9 @@ export type SearchResponse = {
 export type ApiError = {
     message: string
 }
+
+export type RandomMapRequest = {
+    width: number
+    height: number
+    seed: number
+}

@@ -1,20 +1,24 @@
 # Backend
 
-The Java backend of PathFinder: the grid model, map generation, and pathfinding
-algorithms. It is plain Java with no runtime dependencies.
+The Java backend of PathFinder: the grid model, map generation, pathfinding
+algorithms, and the HTTP API that the frontend calls. The grid, generation, and
+search packages are plain Java; only `pathfinder.api` and the
+`PathFinderApplication` entry point use Spring Boot.
 
 | Package                 | Contents                                       | Design record                                                                                                                                                       |
 | ----------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pathfinder.grid`       | `Grid` and `Position`: the immutable map model | [0001](../docs/Architecture%20Decision%20Record/0001-grid-foundation.md), [0003](../docs/Architecture%20Decision%20Record/0003-terrain-limits-and-grid-equality.md) |
-| `pathfinder.generation` | `RandomGridGenerator`: seeded random walls     | [0005](../docs/Architecture%20Decision%20Record/0005-seeded-random-generation.md)                                                                                   |
+| `pathfinder.generation` | `RandomGridGenerator` and `MazeGenerator`: seeded random walls and mazes | [0005](../docs/Architecture%20Decision%20Record/0005-seeded-random-generation.md), [0007](../docs/Architecture%20Decision%20Record/0007-seeded-maze-generation.md) |
 | `pathfinder.search`     | The shared search loop, BFS, and DFS           | [0004](../docs/Architecture%20Decision%20Record/0004-shared-search-engine.md)                                                                                       |
+| `pathfinder.api`        | Spring Boot endpoints for search and maps      | [0006](../docs/Architecture%20Decision%20Record/0006-http-api.md)                                                                                                   |
 
 Sources are in `src/main/java/`, and each package has matching tests in
 `src/test/java/`. The build is described in
 [ADR 0002](../docs/Architecture%20Decision%20Record/0002-maven-build.md).
 
-Not yet implemented: Dijkstra, A\*, bidirectional search, playback recording,
-and the Spring Boot web layer.
+Not yet implemented: Dijkstra, A\*, bidirectional search, and terrain costs in
+API requests. How to start the server is described in
+[How to run](../docs/how-to-run.md).
 
 ## Grid model
 
@@ -137,12 +141,31 @@ probability always produce the same walls, so sharing a seed reproduces a map.
 Every cell has terrain cost `1`.
 
 The generator does not choose endpoints and does not guarantee that a route
-exists. It may place a wall on a cell the user later selects as the start or
-destination; the team has not yet decided whether the generator or the API layer
-should keep those cells open.
+exists. It may place a wall where the start or destination goes; the API keeps those
+cells open (see
+[ADR 0006](../docs/Architecture%20Decision%20Record/0006-http-api.md)).
 
 The design is recorded in
 [ADR 0005](../docs/Architecture%20Decision%20Record/0005-seeded-random-generation.md).
+
+## Maze generation
+
+`MazeGenerator` carves a maze from a seed and suggests a start and destination
+in opposite corners:
+
+```java
+MazeGenerator.Maze maze = new MazeGenerator().generate(21, 30, 48213L);
+maze.grid();          // walls and one-cell corridors
+maze.start();         // (1, 1)
+maze.destination();   // (19, 29)
+```
+
+Every open cell is reachable, with exactly one route between any two of them.
+The same rows, columns, and seed always produce the same maze. Every cell has
+terrain cost `1`.
+
+The design is recorded in
+[ADR 0007](../docs/Architecture%20Decision%20Record/0007-seeded-maze-generation.md).
 
 ## Search
 
@@ -238,7 +261,7 @@ walls, DFS paths are often much longer.
 | `Frontier`                               | Interface for the collection of discovered cells: `push`, `pop`, `isEmpty`.                         |
 | `QueueFrontier`, `StackFrontier`         | Package-private frontiers backed by `int[]` arrays that grow when full.                             |
 | `SearchResult`                           | Immutable record of the path, its cost, and the number of cells expanded.                           |
-| `SearchObserver`                         | Optional listener that receives each step of a search. Playback recording will be built on it.      |
+| `SearchObserver`                         | Optional listener that receives each step of a search. The API's `StepRecorder` uses it for playback. |
 
 The design uses two object-oriented techniques:
 
@@ -292,7 +315,7 @@ The script runs Maven's `verify` phase, which:
 
 1. compiles the code, treating every compiler warning as an error;
 2. runs the JUnit tests, and fails if no tests are found;
-3. packages the domain JAR;
+3. packages the runnable JAR;
 4. generates the coverage report;
 5. generates the JavaDocs, treating every JavaDoc warning as an error.
 
@@ -312,10 +335,11 @@ On macOS and Linux, use `./mvnw` in place of `.\mvnw.cmd`.
 | JUnit results     | `target/surefire-reports/`                     |
 | Coverage report   | `target/site/jacoco/index.html`                |
 | API documentation | `target/site/apidocs/index.html`               |
-| Domain JAR        | `target/pathfinder-backend-0.1.0-SNAPSHOT.jar` |
+| Runnable JAR      | `target/pathfinder-backend-0.1.0-SNAPSHOT.jar` |
 
-Generated files are ignored by Git. The JAR contains domain logic only; there is
-no web server or application entry point yet.
+Generated files are ignored by Git. The JAR is a Spring Boot application that
+starts the API server on port 8080 with
+`java -jar target/pathfinder-backend-0.1.0-SNAPSHOT.jar`.
 
 ### Selecting JDK 26
 
@@ -338,11 +362,13 @@ Each package has its own tests under `src/test/java/pathfinder/`:
 
 - `grid/`: coordinates, neighbors, walls, terrain limits, equality, and input
   validation.
-- `generation/`: reproducibility from a seed, extreme probabilities, and input
-  validation.
+- `generation/`: reproducibility from a seed, extreme probabilities, maze
+  connectivity and shape, and input validation.
 - `search/`: the shared search rules, run against every algorithm, plus BFS,
   DFS, frontier, and result tests. `SearchFixtures` builds small test maps from
   text rows such as `"..#.."`.
+- `api/`: JSON reading and writing, map rules, step recording, and the
+  endpoints over HTTP.
 
 A passing test suite and a coverage report show which code ran and what was
 checked; they are not a proof of correctness.
@@ -354,13 +380,16 @@ checked; they are not a proof of correctness.
 | JDK           | 26 (verified on Eclipse Temurin 26.0.2.1) |
 | Maven         | 3.9.9                                     |
 | Maven Wrapper | 3.3.4                                     |
+| Spring Boot   | 4.1.1                                     |
 | JUnit Jupiter | 6.1.3                                     |
 | JaCoCo        | 0.8.16                                    |
 
 `pom.xml` pins the version of every dependency and build plugin so that all
-contributors run the same build. JUnit is the only dependency and is used only
-in tests. The build uses Maven Enforcer (Java and Maven version checks),
-Compiler, Surefire (test runner), JaCoCo (coverage), and Javadoc.
+contributors run the same build. The only runtime dependency is Spring Boot's web
+starter, used only by `pathfinder.api` and `PathFinderApplication`. JUnit and
+Spring Boot's test support are used only in tests. The build uses Maven Enforcer (Java and Maven version
+checks), Compiler, Surefire (test runner), JaCoCo (coverage), Javadoc, and the
+Spring Boot plugin (runnable JAR).
 
 Maven 3.9.9 prints warnings from its own bundled libraries when it runs on JDK
 26. They do not come from this project's code and do not fail the build.

@@ -17,7 +17,11 @@ public final class MazeGenerator {
 
     /**
      * Carves one-cell corridors with a seeded depth-first backtracker.
-     * Even dimensions leave an extra wall strip by the bottom or right border.
+     * The top and left borders are always walls. The bottom and right borders
+     * are walls when that dimension is odd; when it is even, corridors run to
+     * that edge instead, so no side is left with a wall two cells thick.
+     * The same arguments always produce the same maze.
+     *
      * @param rowCount number of rows, at least three
      * @param columnCount number of columns, at least three
      * @param seed starting value for the random sequence
@@ -34,8 +38,10 @@ public final class MazeGenerator {
             throw new IllegalArgumentException("Grid has too many cells for array indexing.");
         }
 
-        int roomRows = (rowCount - 1) / 2;
-        int roomColumns = (columnCount - 1) / 2;
+        // Rooms sit on odd rows and columns. An even dimension has one more
+        // odd index at its far edge, which becomes the last room.
+        int roomRows = rowCount / 2;
+        int roomColumns = columnCount / 2;
         int lastRoomRow = 2 * roomRows - 1;
         int lastRoomColumn = 2 * roomColumns - 1;
         boolean[] walls = new boolean[(int) cellCount];
@@ -82,8 +88,9 @@ public final class MazeGenerator {
     }
 
     /**
-     * A generated grid with suggested markers in opposite interior corners.
-     * The markers coincide for a maze with one open cell.
+     * A generated grid with suggested markers in opposite corners of the
+     * corridors. The markers coincide for a maze with one open cell.
+     *
      * @param grid immutable grid of walls and corridors
      * @param start suggested starting cell
      * @param destination suggested destination cell
