@@ -9,16 +9,15 @@ search packages are plain Java; only `pathfinder.api` and the
 | ----------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pathfinder.grid`       | `Grid` and `Position`: the immutable map model | [0001](../docs/Architecture%20Decision%20Record/0001-grid-foundation.md), [0003](../docs/Architecture%20Decision%20Record/0003-terrain-limits-and-grid-equality.md) |
 | `pathfinder.generation` | `RandomGridGenerator` and `MazeGenerator`: seeded random walls and mazes | [0005](../docs/Architecture%20Decision%20Record/0005-seeded-random-generation.md), [0007](../docs/Architecture%20Decision%20Record/0007-seeded-maze-generation.md) |
-| `pathfinder.search`     | The shared search loop, BFS, and DFS           | [0004](../docs/Architecture%20Decision%20Record/0004-shared-search-engine.md)                                                                                       |
+| `pathfinder.search`     | The shared search loop, BFS, DFS, Dijkstra, and A\* | [0004](../docs/Architecture%20Decision%20Record/0004-shared-search-engine.md), [0008](../docs/Architecture%20Decision%20Record/0008-dijkstra-and-astar.md) |
 | `pathfinder.api`        | Spring Boot endpoints for search and maps      | [0006](../docs/Architecture%20Decision%20Record/0006-http-api.md)                                                                                                   |
 
 Sources are in `src/main/java/`, and each package has matching tests in
 `src/test/java/`. The build is described in
 [ADR 0002](../docs/Architecture%20Decision%20Record/0002-maven-build.md).
 
-Not yet implemented: Dijkstra, A\*, bidirectional search, and terrain costs in
-API requests. How to start the server is described in
-[How to run](../docs/how-to-run.md).
+Not yet implemented: bidirectional search and terrain costs in API requests.
+How to start the server is described in [How to run](../docs/how-to-run.md).
 
 ## Grid model
 
@@ -169,21 +168,23 @@ The design is recorded in
 
 ## Search
 
-`src/main/java/pathfinder/search/` finds a path between two cells of a grid. BFS
-and DFS are implemented on one shared search loop, so Dijkstra and A\* can be
-added as small subclasses. The reasons for this design are recorded in
-[ADR 0004](../docs/Architecture%20Decision%20Record/0004-shared-search-engine.md).
+`src/main/java/pathfinder/search/` finds a path between two cells of a grid.
+BFS, DFS, Dijkstra, and A\* all run on one shared search loop as small
+subclasses. The design is recorded in
+[ADR 0004](../docs/Architecture%20Decision%20Record/0004-shared-search-engine.md)
+and
+[ADR 0008](../docs/Architecture%20Decision%20Record/0008-dijkstra-and-astar.md).
 
 ```java
 Grid grid = new Grid(3, 3);
-SearchAlgorithm algorithm = new BreadthFirstSearch();   // or new DepthFirstSearch()
+SearchAlgorithm algorithm = new AStarSearch();   // or BreadthFirstSearch, DepthFirstSearch, DijkstraSearch
 SearchResult result = algorithm.search(grid, new Position(0, 0), new Position(2, 2));
 
 if (result.found()) {
     result.path();           // [(0,0), (0,1), (0,2), (1,2), (2,2)]
     result.moves();          // 4
     result.cost();           // 4: the sum of the terrain costs entered
-    result.expandedCount();  // 9: cells expanded, shown as "nodes visited"
+    result.expandedCount();  // 5: cells expanded, shown as "nodes visited"
 }
 ```
 
@@ -217,12 +218,12 @@ the frontier is empty: the goal cannot be reached
 
 Each algorithm defines its behavior by overriding two methods:
 
-| Algorithm          | Frontier (`createFrontier`)                                            | Keep a new route? (`shouldUpdate`) | Result                                         |
-| ------------------ | ---------------------------------------------------------------------- | ---------------------------------- | ---------------------------------------------- |
-| BFS                | Queue: first in, first out                                             | Only the first route found         | Fewest moves                                   |
-| DFS                | Stack: last in, first out                                              | Always the newest route            | A valid path, usually not the shortest         |
-| Dijkstra (planned) | Priority queue: lowest cost so far first                               | Only a cheaper route               | Lowest cost                                    |
-| A\* (planned)      | Priority queue: lowest cost so far plus estimated remaining cost first | Only a cheaper route               | Lowest cost, usually with fewer cells expanded |
+| Algorithm | Frontier (`createFrontier`)                                            | Keep a new route? (`shouldUpdate`) | Result                                         |
+| --------- | ---------------------------------------------------------------------- | ---------------------------------- | ---------------------------------------------- |
+| BFS       | Queue: first in, first out                                             | Only the first route found         | Fewest moves                                   |
+| DFS       | Stack: last in, first out                                              | Always the newest route            | A valid path, usually not the shortest         |
+| Dijkstra  | Priority queue: lowest cost so far first                               | Only a cheaper route               | Lowest cost                                    |
+| A\*       | Priority queue: lowest cost so far plus estimated remaining cost first | Only a cheaper route               | Lowest cost, usually with fewer cells expanded |
 
 **BFS** expands cells in order of distance from the start: every cell one move
 away, then every cell two moves away, and so on. The first route that reaches the
@@ -238,30 +239,48 @@ is already waiting on the stack, it keeps the new route and pushes the cell
 again, so the cell is expanded next; the older entry is skipped later. This is
 why its `shouldUpdate` always returns `true`.
 
-On an open 3x3 grid, searching from the top-left corner to the bottom-right
-corner, the numbers show the order in which cells are expanded:
+**Dijkstra** expands the unexpanded cell with the lowest total terrain cost
+`g(n)` from the start, using a binary min-heap. Because every entered cell has a
+positive terrain cost, the first time a cell is expanded its recorded cost is
+already minimal, so the path returned always has the lowest possible cost. When
+every cell has the same terrain cost, equal-cost ties break in discovery order
+and Dijkstra expands the same cells as BFS.
+
+**A\*** uses the same min-heap and route-replacement rule as Dijkstra, but
+orders cells by `f(n) = g(n) + h(n)`, where `h(n)` is the Manhattan distance
+`|r1 - r2| + |c1 - c2|` to the goal multiplied by `1` (the minimum terrain
+cost). Because orthogonal movement takes at least that many steps and each step
+costs at least `1`, `h(n)` never overestimates the true remaining cost and
+changes by at most `1` per move. Every expanded cell's cost is therefore final,
+and A\* finds a lowest-cost path while expanding only cells that can beat or tie
+the optimal cost. Equal-`f` ties prefer the cell with the larger `g(n)` (smaller
+remaining `h(n)`), pulling the search toward the goal on uniform terrain.
+
+On an open 3x3 grid (cost `1` everywhere), searching from the top-left corner to
+the bottom-right corner, the numbers show the order in which cells are expanded:
 
 ```text
-BFS             DFS
-1 2 4           1 . .
-3 5 7           2 . .
-6 8 9           3 4 5
+BFS / Dijkstra  DFS             A*
+1 2 4           1 . .           1 2 3
+3 5 7           2 . .           . . 4
+6 8 9           3 4 5           . . 5
 ```
 
-BFS expands all 9 cells and returns right, right, down, down. DFS expands 5 cells
-and returns down, down, right, right. Both paths take 4 moves here; on maps with
-walls, DFS paths are often much longer.
+BFS and Dijkstra expand all 9 cells; DFS expands 5 cells down the left edge; A\*
+expands 5 cells straight along a shortest path. On weighted terrain, Dijkstra
+and A\* detour around expensive cells when doing so lowers the total cost, while
+BFS still picks the path with the fewest moves.
 
 ### Code structure
 
-| Type                                     | Role                                                                                                |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `SearchAlgorithm`                        | Abstract base class. Contains the shared `final` search loop and declares the two `abstract` steps. |
-| `BreadthFirstSearch`, `DepthFirstSearch` | Concrete algorithms. Each implements only the two steps.                                            |
-| `Frontier`                               | Interface for the collection of discovered cells: `push`, `pop`, `isEmpty`.                         |
-| `QueueFrontier`, `StackFrontier`         | Package-private frontiers backed by `int[]` arrays that grow when full.                             |
-| `SearchResult`                           | Immutable record of the path, its cost, and the number of cells expanded.                           |
-| `SearchObserver`                         | Optional listener that receives each step of a search. The API's `StepRecorder` uses it for playback. |
+| Type                                                                       | Role                                                                                                  |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `SearchAlgorithm`                                                          | Abstract base class. Contains the shared `final` search loop and declares the two `abstract` steps.   |
+| `BreadthFirstSearch`, `DepthFirstSearch`, `DijkstraSearch`, `AStarSearch`  | Concrete algorithms. Each implements only the two steps.                                              |
+| `Frontier`                                                                 | Interface for the collection of discovered cells: `push`, `pop`, `isEmpty`.                           |
+| `QueueFrontier`, `StackFrontier`, `PriorityFrontier`                       | Package-private frontiers backed by primitive `int[]` and `long[]` arrays that grow when full.        |
+| `SearchResult`                                                             | Immutable record of the path, its cost, and the number of cells expanded.                             |
+| `SearchObserver`                                                           | Optional listener that receives each step of a search. The API's `StepRecorder` uses it for playback. |
 
 The design uses two object-oriented techniques:
 
@@ -270,16 +289,17 @@ The design uses two object-oriented techniques:
   the endpoint rules, path reconstruction, and cost accounting are identical for
   every algorithm.
 - **Polymorphism through an interface.** The loop depends only on `Frontier`, so
-  replacing a queue with a stack changes the search order without changing the
-  loop.
+  replacing a queue with a stack or a binary min-heap changes the search order
+  without changing the loop.
 
 Search state is held in arrays indexed by cell: `parent` (`int[]`), `cost`
 (`long[]`, so large totals cannot overflow), and `expanded` (`boolean[]`). The
-frontiers also store primitive `int` values, which avoids allocating an `Integer`
-object for every cell, as `ArrayDeque<Integer>` would. Each search allocates its
-own state, so one algorithm instance can be reused and shared between threads.
-Each cell is expanded at most once, so time and memory are proportional to the
-number of cells.
+frontiers also store primitive `int` and `long` values, which avoids allocating
+wrapper objects for every push, as `ArrayDeque<Integer>` or `PriorityQueue`
+would. Each search allocates its own state, so one algorithm instance can be
+reused and shared between threads. Each cell is expanded at most once, so memory
+is proportional to the number of cells; BFS and DFS run in O(cells) time, and
+Dijkstra and A\* run in O(cells log cells) time.
 
 A `SearchObserver` passed to `search` is told when each cell is discovered and
 when it is expanded. Every cell is discovered at most once, always before it is
@@ -365,8 +385,8 @@ Each package has its own tests under `src/test/java/pathfinder/`:
 - `generation/`: reproducibility from a seed, extreme probabilities, maze
   connectivity and shape, and input validation.
 - `search/`: the shared search rules, run against every algorithm, plus BFS,
-  DFS, frontier, and result tests. `SearchFixtures` builds small test maps from
-  text rows such as `"..#.."`.
+  DFS, Dijkstra, A\*, frontier, and result tests. `SearchFixtures` builds small
+  test maps from text rows such as `"..#.."`.
 - `api/`: JSON reading and writing, map rules, step recording, and the
   endpoints over HTTP.
 

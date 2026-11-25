@@ -28,7 +28,9 @@ class SearchAlgorithmTest {
     static Stream<Named<SearchAlgorithm>> algorithms() {
         return Stream.of(
                 Named.of("BFS", new BreadthFirstSearch()),
-                Named.of("DFS", new DepthFirstSearch()));
+                Named.of("DFS", new DepthFirstSearch()),
+                Named.of("Dijkstra", new DijkstraSearch()),
+                Named.of("A*", new AStarSearch()));
     }
 
     @ParameterizedTest

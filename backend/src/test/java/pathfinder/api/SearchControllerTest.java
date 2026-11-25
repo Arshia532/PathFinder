@@ -65,9 +65,35 @@ class SearchControllerTest {
     }
 
     @Test
-    void unavailableAlgorithmIsRejected() {
-        assertBadRequest(body(10, cell(0, 0), cell(9, 9), "", "astar"),
-                "A* is not available yet.");
+    void dijkstraAndAStarFindShortestPathsAndAStarVisitsFewerCells() {
+        String walls = cell(3, 5) + "," + cell(4, 5) + "," + cell(5, 5);
+        MvcTestResult dijkstra = search(body(10, cell(4, 1), cell(4, 8), walls, "dijkstra"));
+        MvcTestResult astar = search(body(10, cell(4, 1), cell(4, 8), walls, "astar"));
+
+        assertThat(dijkstra).hasStatusOk();
+        assertThat(dijkstra).bodyJson().extractingPath("$.found").isEqualTo(true);
+        assertThat(dijkstra).bodyJson().extractingPath("$.stats.pathLength").isEqualTo(11);
+        assertThat(dijkstra).bodyJson().extractingPath("$.stats.pathCost").isEqualTo(11);
+
+        assertThat(astar).hasStatusOk();
+        assertThat(astar).bodyJson().extractingPath("$.found").isEqualTo(true);
+        assertThat(astar).bodyJson().extractingPath("$.stats.pathLength").isEqualTo(11);
+        assertThat(astar).bodyJson().extractingPath("$.stats.pathCost").isEqualTo(11);
+
+        int dijkstraVisited = (Integer) assertThat(dijkstra).bodyJson()
+                .extractingPath("$.stats.visited").actual();
+        int astarVisited = (Integer) assertThat(astar).bodyJson()
+                .extractingPath("$.stats.visited").actual();
+        assertThat(astarVisited).isLessThan(dijkstraVisited);
+    }
+
+    @Test
+    void bidirectionalSearchIsRejectedUntilImplemented() {
+        String json = """
+                {"width": 10, "height": 10, "start": %s, "end": %s,
+                    "walls": [], "algorithm": "astar", "bidirectional": true}
+                """.formatted(cell(0, 0), cell(9, 9));
+        assertBadRequest(json, "Bi-directional search is not available yet.");
     }
 
     @Test
