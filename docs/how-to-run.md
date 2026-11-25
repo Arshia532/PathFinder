@@ -156,7 +156,7 @@ npm run build
 | `npm error enoent Could not read package.json` | The terminal is in the repository root, not `frontend` | `cd frontend`, then run the command again. The name in brackets in Git Bash is the branch, not the folder. |
 | Red box: "The server isn't responding … Is the backend running?" (502 in the Network tab) | The backend is not running | Start it (step 3) and wait for "Started PathFinderApplication" |
 | Red box: "Request failed (404)." | The backend is running an older build | Stop it with Ctrl+C and start it again |
-| Red box: "A* is not available yet." | That algorithm is not implemented in the backend yet | Choose BFS or DFS |
+| Red box: "Bi-directional search is not available yet." | Bi-directional search is not implemented in the backend yet | Turn off Bi-directional |
 | `Port 8080 was already in use` | Another program (or an old server) uses port 8080 | Close the other server, or find it with `netstat -ano \| findstr :8080` and end that process |
 | `verify.ps1 cannot be loaded because running scripts is disabled` | Windows blocks PowerShell scripts by default | Run `.\mvnw.cmd -B verify` from `backend` instead |
 | `Unresolved compilation problem` in a Maven run | Leftover classes compiled by the editor | Run `.\mvnw.cmd -B clean verify` |

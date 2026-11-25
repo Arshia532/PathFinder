@@ -6,8 +6,10 @@ import org.springframework.stereotype.Service;
 
 import pathfinder.grid.Grid;
 import pathfinder.grid.Position;
+import pathfinder.search.AStarSearch;
 import pathfinder.search.BreadthFirstSearch;
 import pathfinder.search.DepthFirstSearch;
+import pathfinder.search.DijkstraSearch;
 import pathfinder.search.SearchAlgorithm;
 import pathfinder.search.SearchResult;
 
@@ -22,8 +24,8 @@ final class SearchService {
      *
      * @param request the map and search settings
      * @return the recorded steps, path, and stats
-     * @throws InvalidRequestException if the request is invalid or the algorithm is
-     *                                 not available yet
+     * @throws InvalidRequestException if the request is invalid or bidirectional
+     *                                 search is not available yet
      */
     SearchResponse search(SearchRequest request) {
         if (request.algorithm() == null) {
@@ -52,8 +54,8 @@ final class SearchService {
         return switch (id) {
             case BFS -> new BreadthFirstSearch();
             case DFS -> new DepthFirstSearch();
-            case ASTAR -> throw new InvalidRequestException("A* is not available yet.");
-            case DIJKSTRA -> throw new InvalidRequestException("Dijkstra is not available yet.");
+            case ASTAR -> new AStarSearch();
+            case DIJKSTRA -> new DijkstraSearch();
         };
     }
 
